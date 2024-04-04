@@ -20,6 +20,48 @@ $app->add( function ($request, $handler) {
     ;
 });
 
+//CONEXION A DB
+
+function getConnection() {
+    $dbhost = "db";
+    $dbname = "seminariophp";
+    $dbuser = "seminariophp";
+    $dbpass = "seminariophp";
+    $connection = new PDO("mysql:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
+    $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $connection;
+}
+
 // ACÁ VAN LOS ENDPOINTS
+
+$app->get('/localidades', function(Request $request, Response $response){
+    $pdo = getConnection();
+    $sql = "SELECT nombre FROM localidades";
+    $consulta = $pdo->query($sql);
+    $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    $payload = json_encode([
+        'status' => 'success',
+        'code' => 200,
+        'data' => $resultados
+    ]);
+    $response->getBody()->write($payload);
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/tipos_propiedad', function(Request $request, Response $response){
+    $pdo = getConnection();
+    $sql = "SELECT nombre FROM tipo_propiedades";
+    $consulta = $pdo->query($sql);
+    $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    $payload = json_encode([
+        'status' => 'success',
+        'code' => 200,
+        'data' => $resultados
+    ]);
+    $response->getBody()->write($payload);
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+
 
 $app->run();
