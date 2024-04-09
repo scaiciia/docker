@@ -5,7 +5,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 function getTiposPropiedad(Request $request, Response $response){
     $pdo = getConnection();
-    $sql = "SELECT nombre FROM tipo_propiedades";
+    $sql = "SELECT * FROM tipo_propiedades";
     $consulta = $pdo->query($sql);
     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
     $payload = json_encode([

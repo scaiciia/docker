@@ -26,6 +26,7 @@ $app->add( function ($request, $handler) {
 
 // ACÁ VAN LOS ENDPOINTS
 
+//Localidades
 $app->get('/localidades', function(Request $request, Response $response){
     getLocalidades($request, $response);
     return $response;
@@ -36,6 +37,17 @@ $app->post('/localidades', function(Request $request, Response $response){
     return $response;
 });
 
+$app->put('/localidades/{id}', function(Request $request, Response $response, array $args){
+    putLocalidades($request, $response, $args);
+    return $response;
+});
+
+$app->delete('/localidades/{id}', function(Request $request, Response $response, array $args){
+    deleteLocalidades($request, $response, $args);
+    return $response;
+});
+
+//Tipos propiedad
 $app->get('/tipos_propiedad', function(Request $request, Response $response){
     getTiposPropiedad($request, $response);
     return $response;
