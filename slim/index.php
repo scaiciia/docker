@@ -8,6 +8,7 @@ require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/src/dbConection.php';
 require __DIR__ . '/src/localidadesController.php';
 require __DIR__ . '/src/tiposPropiedadController.php';
+require __DIR__ . '/src/inquilinosController.php';
 
 $app = AppFactory::create();
 $app->addRoutingMiddleware();
@@ -26,7 +27,7 @@ $app->add( function ($request, $handler) {
 
 // ACÁ VAN LOS ENDPOINTS
 
-//Localidades
+// Localidades
 $app->get('/localidades', function(Request $request, Response $response){
     getLocalidades($request, $response);
     return $response;
@@ -47,9 +48,40 @@ $app->delete('/localidades/{id}', function(Request $request, Response $response,
     return $response;
 });
 
-//Tipos propiedad
+// Tipos propiedad
 $app->get('/tipos_propiedad', function(Request $request, Response $response){
     getTiposPropiedad($request, $response);
+    return $response;
+});
+
+$app->post('/tipos_propiedad', function(Request $request, Response $response){
+    postTiposPropiedad($request, $response);
+    return $response;
+});
+
+$app->put('/tipos_propiedad/{id}', function(Request $request, Response $response, array $args){
+    putTiposPropiedad($request, $response, $args);
+    return $response;
+});
+
+$app->delete('/tipos_propiedad/{id}', function(Request $request, Response $response, array $args){
+    deleteTiposPropiedad($request, $response, $args);
+    return $response;
+});
+
+// Inquilinos
+$app->get('/inquilinos', function(Request $request, Response $response){
+    getInquilinos($request, $response);
+    return $response;
+});
+
+$app->post('/inquilinos', function(Request $request, Response $response){
+    postInquilinos($request, $response);
+    return $response;
+});
+
+$app->get('/inquilinos/{id}', function(Request $request, Response $response, array $args) {
+    getInquilino($request, $response, $args);
     return $response;
 });
 

@@ -4,10 +4,16 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 function getLocalidades(Request $request, Response $response){
+
+    // Conexion a base de datos
     $pdo = getConnection();
+
+    // Consulta a la base de datos
     $sql = "SELECT * FROM localidades";
     $consulta = $pdo->query($sql);
     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+
+    // Retorna el resultado en un JSON
     $payload = json_encode([
         'status' => 'success',
         'code' => 200,
@@ -18,9 +24,11 @@ function getLocalidades(Request $request, Response $response){
 };
 
 function postLocalidades(Request $request, Response $response){
-    //obtiene la informacion
+
+    // Obtiene la informacion
     $data = $request->getParsedBody();
-    //verifica si hay información del campo nombre
+
+    // Verifica si hay información del campo nombre
     if (!isset($data['nombre'])){
         $payload = json_encode([
             'error' => 'El campo nombre es requerido',
@@ -30,11 +38,14 @@ function postLocalidades(Request $request, Response $response){
         return $response->withStatus(400);
     } else {
         try {
-            //conexion a base de datos
+
+            // Conexion a base de datos
             $pdo = getConnection();
-            //obtiene el dato del campo nombre
+
+            // Obtiene el dato del campo nombre
             $nombre = $data['nombre'];
-            //realiza una consulta a la base de datos para ver si ese dato ya existe.
+
+            // Realiza una consulta a la base de datos para ver si ese dato ya existe.
             $sql = "SELECT * FROM localidades WHERE nombre = '" . $nombre . "'";
             $consulta_repetido = $pdo->query($sql);
             if ($consulta_repetido->rowCount() > 0) {
@@ -45,6 +56,8 @@ function postLocalidades(Request $request, Response $response){
                 $response->getBody()->write($payload);
                 return $response->withStatus(400);
             } else {
+
+                // Inserta el nuevo dato en la base de datos
                 $sql = "INSERT INTO localidades (nombre) VALUES (:nombre)";
                 $consulta = $pdo->prepare($sql);
                 $consulta->bindValue(':nombre', $nombre);
@@ -57,20 +70,24 @@ function postLocalidades(Request $request, Response $response){
                 return $response->withStatus(201);
             }
         } catch (\Exception $e) {
-            //se prdujo un error al crear
+
+            // Se prdujo un error al crear
             $payload = json_encode([
                 'code' => '500',
                 'error' => $e->getMessage()
             ]);
-            $response = getBody()->write($payload);
+            $response->getBody()->write($payload);
             return $response->withStatus(500);
         }
     }
 };
 
 function putLocalidades(Request $request, Response $response, array $args){
+
+    // Obtiene la informacion
     $data = $request->getParsedBody();
-    //verifica si hay información del campo nombre
+
+    // Verifica si hay información del campo nombre
     if (!isset($data['nombre'])){
         $payload = json_encode([
             'error' => 'El campo nombre es requerido',
@@ -80,10 +97,14 @@ function putLocalidades(Request $request, Response $response, array $args){
         return $response->withStatus(400);
     } else {
         try {
-            //obtiene la informacion
+
+            // Obtiene la informacion
             $id = $args['id'];
 
+            // Conexion a base de datos
             $pdo = getConnection();
+
+            // Consulta si existe el id
             $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
             $existe = $pdo->query($sql);
             if ($existe->rowCount() == 0) {
@@ -94,8 +115,11 @@ function putLocalidades(Request $request, Response $response, array $args){
                 $response->getBody()->write($payload);
                 return $response->withStatus(404);
             } else {
+
+                // Obtiene el dato
                 $nombre = $data['nombre'];
-                //realiza una consulta a la base de datos para ver si ese dato ya existe.
+
+                // Realiza una consulta a la base de datos para ver si ese nombre ya existe.
                 $sql = "SELECT * FROM localidades WHERE nombre = '" . $nombre . "'";
                 $consulta_repetido = $pdo->query($sql);
                 if ($consulta_repetido->rowCount() > 0) {
@@ -106,6 +130,8 @@ function putLocalidades(Request $request, Response $response, array $args){
                     $response->getBody()->write($payload);
                     return $response->withStatus(400);
                 } else {
+
+                    // Actualiza el nombre
                     $sql = "UPDATE localidades SET nombre = (:nombre) WHERE id = (:id)";
                     $consulta = $pdo->prepare($sql);
                     $consulta->bindValue(':nombre', $nombre, PDO::PARAM_STR);
@@ -120,12 +146,12 @@ function putLocalidades(Request $request, Response $response, array $args){
                 }
             }
         } catch (\Exception $e) {
-            //se prdujo un error al crear
+            // Se prdujo un error al editar
             $payload = json_encode([
                 'code' => '500',
                 'error' => $e->getMessage()
             ]);
-            $response = getBody()->write($payload);
+            $response->getBody()->write($payload);
             return $response->withStatus(500);
         }
     }
@@ -133,10 +159,14 @@ function putLocalidades(Request $request, Response $response, array $args){
 
 function deleteLocalidades(Request $request, Response $response, array $args){
     try {
+
         //obtiene la informacion
         $id = $args['id'];
 
+        // Conexion a base de datos
         $pdo = getConnection();
+
+        // Consulta si existe el id
         $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
         $existe = $pdo->query($sql);
         if ($existe->rowCount() == 0) {
@@ -147,6 +177,8 @@ function deleteLocalidades(Request $request, Response $response, array $args){
             $response->getBody()->write($payload);
             return $response->withStatus(404);
         } else {
+
+            // Elimina el dato de la base de datos
             $sql = "DELETE FROM localidades WHERE id = (:id)";
             $consulta = $pdo->prepare($sql);
             $consulta->bindValue(':id', $id, PDO::PARAM_INT);
@@ -159,12 +191,13 @@ function deleteLocalidades(Request $request, Response $response, array $args){
             return $response->withStatus(201);
         }
     } catch (\Exception $e) {
-        //se prdujo un error al crear
+
+        //se prdujo un error al eliminar
         $payload = json_encode([
             'code' => '500',
             'error' => $e->getMessage()
         ]);
-        $response = getBody()->write($payload);
+        $response->getBody()->write($payload);
         return $response->withStatus(500);
     }
 };
