@@ -85,4 +85,14 @@ $app->get('/inquilinos/{id}', function(Request $request, Response $response, arr
     return $response;
 });
 
+$app->put('/inquilinos/{id}', function(Request $request, Response $response, array $args){
+    putInquilino($request, $response, $args);
+    return $response;
+});
+
+$app->delete('/inquilinos/{id}', function(Request $request, Response $response, array $args){
+    deleteInquilino($request, $response, $args);
+    return $response;
+});
+
 $app->run();
