@@ -9,6 +9,8 @@ require __DIR__ . '/src/dbConection.php';
 require __DIR__ . '/src/localidadesController.php';
 require __DIR__ . '/src/tiposPropiedadController.php';
 require __DIR__ . '/src/inquilinosController.php';
+require __DIR__ . '/src/validaciones.php';
+require __DIR__ . '/src/responseModels.php';
 
 $app = AppFactory::create();
 $app->addRoutingMiddleware();
@@ -92,6 +94,11 @@ $app->put('/inquilinos/{id}', function(Request $request, Response $response, arr
 
 $app->delete('/inquilinos/{id}', function(Request $request, Response $response, array $args){
     deleteInquilino($request, $response, $args);
+    return $response;
+});
+
+$app->get('/inquilinos/{id}/reservas', function(Request $request, Response $response, array $args){
+    getInquilinoReservas($request, $response, $args);
     return $response;
 });
 
