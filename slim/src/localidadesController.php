@@ -9,16 +9,24 @@ function getLocalidades(Request $request, Response $response){
     $pdo = getConnection();
 
     // Consulta a la base de datos
-    $sql = "SELECT * FROM localidades";
+    $sql = "SELECT * FROM localidades ORDER BY id" ;
     $consulta = $pdo->query($sql);
     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
     // Retorna el resultado en un JSON
-    $payload = json_encode([
-        'status' => 'success',
-        'code' => 200,
-        'data' => $resultados
-    ]);
+    if(isset($resultados) && is_array($resultados) && !empty($resultados)){
+        $payload = json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $resultados
+        ]);
+    } else {
+        $payload = json_encode([
+            'status' => 'failed',
+            'code' => 400,
+            'error' => 'No hay localidades en la base'
+        ]);
+    }
     $response->getBody()->write($payload);
     return $response->withStatus(200);
 };
@@ -99,7 +107,7 @@ function putLocalidades(Request $request, Response $response, array $args){
         try {
 
             // Obtiene la informacion
-            $id = $args['id'];
+                $id = $args['id'];
 
             // Conexion a base de datos
             $pdo = getConnection();
