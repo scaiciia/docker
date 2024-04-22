@@ -1,6 +1,6 @@
 <?php
 
-$campoRequerido = ['nombre', 'apellido', 'documento', 'email', 'activo'];
+$inquilinosCamposRequeridos = ['nombre', 'apellido', 'documento', 'email', 'activo'];
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -27,8 +27,8 @@ function postInquilinos(Request $request, Response $response){
     // Obtiene la informacion
     $data = $request->getParsedBody();
 
-    global $campoRequerido;
-    $erroresValidacion = validarCampoVacio($data, $campoRequerido);
+    global $inquilinosCamposRequeridos;
+    $erroresValidacion = validarCampoVacio($data, $inquilinosCamposRequeridos);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);
@@ -42,7 +42,7 @@ function postInquilinos(Request $request, Response $response){
 
             $validarExistentes = array('email' => $email, 'documento' => $documento);
 
-            $erroresExistentes = validarExistenteDB($pdo, $validarExistentes);
+            $erroresExistentes = validarExistenteDB($pdo, 'inquilinos', $validarExistentes);
 
             if (!empty($erroresExistentes)) { // Verifica si email y documento no estan repetidos
                 return responseWithError($response, $erroresExistentes, 400);
@@ -101,8 +101,8 @@ function putInquilino(Request $request, Response $response, array $args) {
     // Obtiene la informacion
     $data = $request->getParsedBody();
 
-    global $campoRequerido;
-    $erroresValidacion = validarCampoVacio($data, $campoRequerido);
+    global $inquilinosCamposRequeridos;
+    $erroresValidacion = validarCampoVacio($data, $inquilinosCamposRequeridos);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);
@@ -127,7 +127,7 @@ function putInquilino(Request $request, Response $response, array $args) {
 
                 $validarExistentes = array('email' => $email, 'documento' => $documento);
 
-                $erroresExistentes = validarExistenteDB($pdo, $validarExistentes, $opcional);
+                $erroresExistentes = validarExistenteDB($pdo, 'inquilinos', $validarExistentes, $opcional);
 
                 if (!empty($erroresExistentes)) { // Verifica si email y documento no estan repetidos
                     return responseWithError($response, $erroresExistentes, 400);

@@ -10,10 +10,10 @@ function validarCampoVacio($data, $requiredFields) {
     return $errores;
 }
 
-function validarExistenteDB($pdo, $validarExistentes, $opcional = "") {
+function validarExistenteDB($pdo, $tabla, $validarExistentes, $opcional = "") {
     $errores = [];
     foreach ($validarExistentes as $field => $value) {
-        $sql = "SELECT * FROM inquilinos WHERE $field = ?" . $opcional;
+        $sql = "SELECT * FROM $tabla WHERE $field = ?" . $opcional;
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$value]);
         if ($stmt->rowCount() > 0) {
