@@ -142,12 +142,98 @@ function putPropiedades (Request $request, Response $response, $args){
             $response->getBody()->write($payload);
             return $response->withStatus(404);
         }else{
+            
             $data = $request->getParsedBody();
-            $domicilio = $data['domicilio'];
-            $sql = "UPDATE propiedades SET domicilio = (:domicilio) WHERE id = (:id)";
+            $tipo_propiedad_id = isset($data['tipo_propiedad_id']) ? $data['tipo_propiedad_id'] : null;
+            $localidad_id = isset($data['localidad_id']) ? $data['localidad_id'] : null;
+            $domicilio = isset($data['domicilio']) ? $data['domicilio'] : null;
+            $cantidad_habitaciones = isset($data['cantidad_habitaciones']) ? $data['cantidad_habitaciones'] : null;
+            $cantidad_banios = isset($data['cantidad_banios']) ? $data['cantidad_banios'] : null;
+            $cochera = isset($data['cochera']) ? $data['cochera'] : null;
+            $fecha_inicio_disponibilidad = isset($data['fecha_inicio_disponibilidad']) ? $data['fecha_inicio_disponibilidad'] : null;
+            $cantidad_dias = isset($data['cantidad_dias']) ? $data['cantidad_dias'] : null;
+            $disponible = isset($data['disponible']) ? $data['disponible'] : null;
+            $valor_noche = isset($data['valor_noche']) ? $data['valor_noche'] : null;
+            $imagen = isset($data['imagen']) ? $data['imagen'] : null;
+            $tipo_imagen = isset($data['tipo_imagen']) ? $data['tipo_imagen'] : null;
+            $cantidad_huespedes = isset($data['cantidad_huespedes']) ? $data['cantidad_huespedes'] : null;
+
+            $sql = "UPDATE propiedades SET";
+            $params = [];
+            
+            if (!empty($domicilio)) {
+                $sql .= " domicilio = :domicilio,";
+                $params[':domicilio'] = $domicilio;
+            }
+
+            if (!empty($localidad_id)) {
+                $sql .= " localidad_id = :localidad_id,";
+                $params[':localidad_id'] = $localidad_id;
+            }
+
+            if (!empty($cantidad_habitaciones)) {
+                $sql .= " cantidad_habitaciones = :cantidad_habitaciones,";
+                $params[':cantidad_habitaciones'] = $cantidad_habitaciones;
+            }
+            if (!empty($cantidad_banios)) {
+                $sql .= " cantidad_banios = :cantidad_banios,";
+                $params[':cantidad_banios'] = $cantidad_banios;
+            }
+            
+            if (!empty($cochera)) {
+                $sql .= " cochera = :cochera,";
+                $params[':cochera'] = $cochera;
+            }
+            
+            if (!empty($cantidad_huespedes)) {
+                $sql .= " cantidad_huespedes = :cantidad_huespedes,";
+                $params[':cantidad_huespedes'] = $cantidad_huespedes;
+            }
+            
+            if (!empty($fecha_inicio_disponibilidad)) {
+                $sql .= " fecha_inicio_disponibilidad = :fecha_inicio_disponibilidad,";
+                $params[':fecha_inicio_disponibilidad'] = $fecha_inicio_disponibilidad;
+            }
+            
+            if (!empty($cantidad_dias)) {
+                $sql .= " cantidad_dias = :cantidad_dias,";
+                $params[':cantidad_dias'] = $cantidad_dias;
+            }
+            
+            if (!empty($disponible)) {
+                $sql .= " disponible = :disponible,";
+                $params[':disponible'] = $disponible;
+            }
+            
+            if (!empty($valor_noche)) {
+                $sql .= " valor_noche = :valor_noche,";
+                $params[':valor_noche'] = $valor_noche;
+            }
+
+            if (!empty($tipo_propiedad_id)){
+                $sql .= " tipo_propiedad_id = :tipo_propiedad_id,";
+                $params[':tipo_propiedad_id'] = $tipo_propiedad_id;
+            }
+            
+            if (!empty($imagen)) {
+                $sql .= " imagen = :imagen,";
+                $params[':imagen'] = $imagen;
+            }
+            
+            if (!empty($tipo_imagen)) {
+                $sql .= " tipo_imagen = :tipo_imagen,";
+                $params[':tipo_imagen'] = $tipo_imagen;
+            }
+            $sql = rtrim($sql, ',');
+
+            $sql .= " WHERE id = :id";
+            $params[':id'] = $id;
+
             $consulta = $pdo->prepare($sql);
-            $consulta->bindValue(':domicilio', $domicilio, PDO::PARAM_STR);
-            $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+
+            foreach ($params as $key => $value) {
+                $consulta->bindValue($key, $value);
+            }
             $consulta->execute();
             $payload = json_encode([
                 'code' => 201,
