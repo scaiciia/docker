@@ -32,31 +32,63 @@ function getPropiedades (Request $request, Response $response){
 
 function postPropiedades (Request $request, Response $response){
     $data = $request->getParsedBody();
-    $requiredFields = ['domicilio', 'cantidad_huesped', 'fecha_inicio_disponible', 'cantidad_dias', 'disponible', 'valor_noche'];
+    $requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
+    //campo requerido moneda_id ??
+    $arr = [];
+     $fields = "";
+     foreach ($requiredFields as $field) {
+         if (!isset($data[$field]) || empty($data[$field])) {
+             $arr[] = $field; 
+             if (!empty($fields)) {
+                 $fields .= ', '; 
+             }
+             $fields .= $field; 
+         }
+     }
+    if (!empty($arr)){
+        $error = (count($arr) > 1)  ? "fatan los campos requeridos: " : "falta el campo requerido " ;
+        $payload = json_encode([
+            'error' => $error . $fields,
+            'code' => '400'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withStatus(400);
 
-    foreach ($requiredFields as $field) {
-        if (!isset($data[$field])) {
-            $payload = json_encode([
-                'error' => 'faltan campos requeridos',
-                'code' => '400'
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(400);
-        } else {
+    } else {
             // FALTAN SUMAR LAS RELACIONES CON LAS OTRAS TABLAS PARA CONSEGUIR localidad_id tipo propiedad id
+            
         try {
+                
             $pdo = getConnection();
+            $nombre_localidad = $data['localidad_id'];
+            $nombre_tipo_propiedad = $data['tipo_propiedad_id'];
+            $sql = "SELECT id AS id_localidad FROM localidades WHERE nombre = (:nombre_localidad) UNION SELECT id AS id_tipo_propiedad FROM tipo_propiedades WHERE nombre = (:nombre_tipo_propiedad)";
+            $consulta = $pdo->prepare($sql);
+            $consulta->bindValue(':nombre_localidad', $nombre_localidad);
+            $consulta->bindValue(':nombre_tipo_propiedad', $nombre_tipo_propiedad);
+            $consulta->execute();
+            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $id_localidades = $resultados[0]['id'];
+            if (!isset($resultados[1]['id'])) {
+                $payload = json_encode([
+                    'error' => "El campo "." $resultados[0]['id'] " . "es incorrecto",
+                    'code' => "400"
+                ]);
+                $response->getBody()->write($payload);
+                return $response;
+            }
+            $tipo_propiedad_id = $resultados[1]['id'];
+            $localidad_id=$resultados[0]['id'];
+
             $id = $data['id'];
-            $localidad_id = $data['localidad_id'];
             $domicilio = $data['domicilio'];
             $cantidad_habitaciones = $data['cantidad_habitaciones'];
             $cantidad_banios = $data['cantidad_banios'];
-            $cochera = $data['cochera']; // Si no está definido en los datos, asume un valor por defecto o maneja de otra manera
+            $cochera = $data['cochera']; 
             $fecha_inicio_disponibilidad = $data['fecha_inicio_disponibilidad'];
             $cantidad_dias = $data['cantidad_dias'];
             $disponible = $data['disponible'];
             $valor_noche = $data['valor_noche'];
-            $tipo_propiedad_id = $data['tipo_propiedad_id'];
             $imagen = $data['imagen'];
             $tipo_imagen = $data['tipo_imagen'];
             $cantidad_huespedes = $data['cantidad_huespedes'];
@@ -94,8 +126,7 @@ function postPropiedades (Request $request, Response $response){
         }
         }
     }
-}
-
+    
 function putPropiedades (Request $request, Response $response, $args){
     try {
 
