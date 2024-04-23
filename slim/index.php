@@ -6,11 +6,14 @@ use Slim\Factory\AppFactory;
 
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/src/dbConection.php';
+require __DIR__ . '/src/validaciones.php';
+require __DIR__ . '/src/responseModels.php';
 require __DIR__ . '/src/localidadesController.php';
 require __DIR__ . '/src/tiposPropiedadController.php';
 require __DIR__ . '/src/inquilinosController.php';
-require __DIR__ . '/src/validaciones.php';
-require __DIR__ . '/src/responseModels.php';
+require __DIR__ . '/src/propiedadesController.php';
+require __DIR__ . '/src/reservasController.php';
+
 
 $app = AppFactory::create();
 $app->addRoutingMiddleware();
@@ -101,5 +104,54 @@ $app->get('/inquilinos/{id}/reservas', function(Request $request, Response $resp
     getInquilinoReservas($request, $response, $args);
     return $response;
 });
+
+
+// Propiedades
+$app->post('/propiedades', function(Request $request, Response $response){
+    postPropiedades($request, $response);
+    return $response;
+});
+
+$app->put('/propiedades/{id}', function(Request $request, Response $response, array $args){
+    putPropiedades($request, $response, $args);
+    return $response;
+});
+
+$app->delete('/propiedades/{id}', function(Request $request, Response $response, array $args){
+    deletePropiedades($request, $response, $args);
+    return $response;
+});
+
+$app->get('/propiedades', function(Request $request, Response $response){
+    getPropiedades($request, $response);
+    return $response;
+});
+
+$app->get('/propiedades/{id}', function(Request $request, Response $response, array $args){
+    getPropiedad($request, $response, $args);
+    return $response;
+});
+
+// Reserva
+
+$app->post('/reservas', function(Request $request, Response $response){
+    postReservas($request, $response);
+    return $response;
+});
+
+$app->put('/reservas/{id}', function(Request $request, Response $response, array $args){
+    putReservas($request, $response, $args);
+    return $response;
+});
+
+$app->delete('/reservas/{id}', function(Request $request, Response $response, array $args){
+    deleteReservas($request, $response, $args);
+    return $response;
+});
+
+$app->get('/reservas', function(Request $request, Response $response){
+    getReservas($request, $response);
+
+
 
 $app->run();

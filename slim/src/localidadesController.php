@@ -7,16 +7,24 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 function getLocalidades(Request $request, Response $response){
     try {
-        // Conexion a base de datos
-        $pdo = getConnection();
+          // Conexion a base de datos
+          $pdo = getConnection();
 
-        // Consulta a la base de datos
-        $sql = "SELECT * FROM localidades";
-        $consulta = $pdo->query($sql);
-        $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+          // Consulta a la base de datos
+          $sql = "SELECT * FROM localidades ORDER BY id" ;
+          $consulta = $pdo->query($sql);
+          $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
-        // Retorna el resultado en un JSON
-        return responseWithData($response, $resultados, 200);
+          // Retorna el resultado en un JSON
+          if(isset($resultados) && is_array($resultados) && !empty($resultados)){
+              return responseWithData($response, $resultados, 200);
+          } else {
+              $payload = json_encode([
+                    'status' => 'failed',
+                    'code' => 400,
+                    'error' => 'No hay localidades en la base'
+              ]);
+          }
     } catch (\Exception $e) {
         return responseWithError($response, $e, 500);
     }
@@ -79,7 +87,7 @@ function putLocalidades(Request $request, Response $response, array $args){
         try {
 
             // Obtiene la informacion
-            $id = $args['id'];
+                $id = $args['id'];
 
             // Conexion a base de datos
             $pdo = getConnection();
