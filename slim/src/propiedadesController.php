@@ -55,7 +55,6 @@ function postPropiedades (Request $request, Response $response){
         return $response->withStatus(400);
 
     } else {
-            // FALTAN SUMAR LAS RELACIONES CON LAS OTRAS TABLAS PARA CONSEGUIR localidad_id tipo propiedad id
             
         try {
                 
@@ -69,7 +68,7 @@ function postPropiedades (Request $request, Response $response){
             $consulta->execute();
             $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $id_localidades = $resultados[0]['id'];
-            if (!isset($resultados[1]['id'])) {
+            if (!isset($resultados[1]['id']) && isset($resultados[0]['id'])) {
                 $payload = json_encode([
                     'error' => "El campo "." $resultados[0]['id'] " . "es incorrecto",
                     'code' => "400"
