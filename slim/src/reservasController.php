@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../utils/utils.php";
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -28,6 +29,28 @@ function getReservas (Request $request, Response $response) {
 
 function postReservas (Request $request, Response $response) {
     $data = $request->getParsedBody();
+    $requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
+    
+    //campo requerido moneda_id ??
+    $arr = [];
+     $fields = "";
+     foreach ($requiredFields as $field) {
+         if (!isset($data[$field]) || empty($data[$field])) {
+             $arr[] = $field; 
+             if (!empty($fields)) {
+                 $fields .= ', '; 
+             }
+             $fields .= $field; 
+         }
+     }
+    if (!empty($arr)){
+        $error = (count($arr) > 1)  ? "fatan los campos requeridos: " : "falta el campo requerido " ;
+        $payload = json_encode([
+            'error' => $error . $fields,
+            'code' => '400'
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withStatus(400);
     $id = $data['id'];
     $propiedad_id = $data['propiedad_id'];
     $inquilino_id = $data['inquilino_id'];
@@ -61,6 +84,7 @@ function postReservas (Request $request, Response $response) {
         $response->getBody()->write($payload);
         return $response->withStatus(500);
     }
+    } 
 }
 
 function deleteReservas (Request $request, Response $response, $args){

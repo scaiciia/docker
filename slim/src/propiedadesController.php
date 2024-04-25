@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../utils/utils.php';
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -33,35 +35,16 @@ function getPropiedades (Request $request, Response $response){
 function postPropiedades (Request $request, Response $response){
     $data = $request->getParsedBody();
     $requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
-    //campo requerido moneda_id ??
-    $arr = [];
-     $fields = "";
-     foreach ($requiredFields as $field) {
-         if (!isset($data[$field]) || empty($data[$field])) {
-             $arr[] = $field; 
-             if (!empty($fields)) {
-                 $fields .= ', '; 
-             }
-             $fields .= $field; 
-         }
-     }
-    if (!empty($arr)){
-        $error = (count($arr) > 1)  ? "fatan los campos requeridos: " : "falta el campo requerido " ;
-        $payload = json_encode([
-            'error' => $error . $fields,
-            'code' => '400'
-        ]);
-        $response->getBody()->write($payload);
+    $responseVal = validationFields($data,$requiredFields,$response);
+    //var_dump($responseVal);die;
+    if (!$responseVal){
         return $response->withStatus(400);
-
     } else {
-            
         try {
-                
             $pdo = getConnection();
             $nombre_localidad = $data['localidad_id'];
             $nombre_tipo_propiedad = $data['tipo_propiedad_id'];
-            $sql = "SELECT id AS id_localidad FROM localidades WHERE nombre = (:nombre_localidad) UNION SELECT id AS id_tipo_propiedad FROM tipo_propiedades WHERE nombre = (:nombre_tipo_propiedad)";
+            $sql = "SELECT id  FROM localidades WHERE nombre = (:nombre_localidad) UNION SELECT id FROM tipo_propiedades WHERE nombre = (:nombre_tipo_propiedad)";
             $consulta = $pdo->prepare($sql);
             $consulta->bindValue(':nombre_localidad', $nombre_localidad);
             $consulta->bindValue(':nombre_tipo_propiedad', $nombre_tipo_propiedad);
@@ -78,7 +61,7 @@ function postPropiedades (Request $request, Response $response){
             }
             $tipo_propiedad_id = $resultados[1]['id'];
             $localidad_id=$resultados[0]['id'];
-
+            
             $id = $data['id'];
             $domicilio = $data['domicilio'];
             $cantidad_habitaciones = $data['cantidad_habitaciones'];
@@ -91,7 +74,7 @@ function postPropiedades (Request $request, Response $response){
             $imagen = $data['imagen'];
             $tipo_imagen = $data['tipo_imagen'];
             $cantidad_huespedes = $data['cantidad_huespedes'];
-
+            
             $sql = "INSERT INTO propiedades (id, domicilio, localidad_id, cantidad_habitaciones, cantidad_banios, cochera, cantidad_huespedes, fecha_inicio_disponibilidad, cantidad_dias, disponible, valor_noche, tipo_propiedad_id, imagen, tipo_imagen) VALUES (:id, :domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)";
             $consulta = $pdo->prepare($sql);
             $consulta->bindValue(':id', $id);
@@ -123,14 +106,14 @@ function postPropiedades (Request $request, Response $response){
             $response->getBody()->write($payload);
             return $response->withStatus(500);
         }
-        }
     }
+}
     
-function putPropiedades (Request $request, Response $response, $args){
-    try {
-
-        $id = $args['id'];
-        $pdo = getConnection();
+    function putPropiedades (Request $request, Response $response, $args){
+        try {
+            
+            $id = $args['id'];
+            $pdo = getConnection();
         $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'"    ;
         $consulta =  $pdo->query($sql);
         if ($consulta->rowCount() == 0) {
