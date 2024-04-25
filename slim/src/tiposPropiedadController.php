@@ -1,6 +1,7 @@
 <?php
 
 $tiposPropiedadCamposRequeridos = ['nombre'];
+$longitudCampo = array('nombre' => 50);
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -29,7 +30,8 @@ function postTiposPropiedad(Request $request, Response $response){
 
     // Verifica si hay información del campo nombre
     global $tiposPropiedadCamposRequeridos;
-    $erroresValidacion = validarCampoVacio($data, $tiposPropiedadCamposRequeridos);
+    global $longitudCampo;
+    $erroresValidacion = validarCampo($data, $tiposPropiedadCamposRequeridos, $longitudCampo);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);
@@ -73,7 +75,7 @@ function putTiposPropiedad(Request $request, Response $response, array $args){
 
     // Verifica si hay información del campo nombre
     global $tiposPropiedadCamposRequeridos;
-    $erroresValidacion = validarCampoVacio($data, $tiposPropiedadCamposRequeridos);
+    $erroresValidacion = validarCampo($data, $tiposPropiedadCamposRequeridos);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);

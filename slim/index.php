@@ -151,7 +151,7 @@ $app->delete('/reservas/{id}', function(Request $request, Response $response, ar
 
 $app->get('/reservas', function(Request $request, Response $response){
     getReservas($request, $response);
-
-
+    return $response;
+});
 
 $app->run();

@@ -28,7 +28,7 @@ function postInquilinos(Request $request, Response $response){
     $data = $request->getParsedBody();
 
     global $inquilinosCamposRequeridos;
-    $erroresValidacion = validarCampoVacio($data, $inquilinosCamposRequeridos);
+    $erroresValidacion = validarCampo($data, $inquilinosCamposRequeridos);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);
@@ -102,7 +102,7 @@ function putInquilino(Request $request, Response $response, array $args) {
     $data = $request->getParsedBody();
 
     global $inquilinosCamposRequeridos;
-    $erroresValidacion = validarCampoVacio($data, $inquilinosCamposRequeridos);
+    $erroresValidacion = validarCampo($data, $inquilinosCamposRequeridos);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);

@@ -1,30 +1,27 @@
 <?php
 
 $localidadesCamposRequeridos = ['nombre'];
+$longCampoLocalidades = array('nombre' => 50);
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 function getLocalidades(Request $request, Response $response){
     try {
-          // Conexion a base de datos
-          $pdo = getConnection();
+            // Conexion a base de datos
+            $pdo = getConnection();
 
-          // Consulta a la base de datos
-          $sql = "SELECT * FROM localidades ORDER BY id" ;
-          $consulta = $pdo->query($sql);
-          $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            // Consulta a la base de datos
+            $sql = "SELECT * FROM localidades ORDER BY id" ;
+            $consulta = $pdo->query($sql);
+            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
-          // Retorna el resultado en un JSON
-          if(isset($resultados) && is_array($resultados) && !empty($resultados)){
-              return responseWithData($response, $resultados, 200);
-          } else {
-              $payload = json_encode([
-                    'status' => 'failed',
-                    'code' => 400,
-                    'error' => 'No hay localidades en la base'
-              ]);
-          }
+            // Retorna el resultado en un JSON
+            if(isset($resultados) && is_array($resultados) && !empty($resultados)){
+                return responseWithData($response, $resultados, 200);
+            } else {
+                return responseWithError($response, 'No hay localidades en la base', 400);
+            }
     } catch (\Exception $e) {
         return responseWithError($response, $e, 500);
     }
@@ -36,7 +33,8 @@ function postLocalidades(Request $request, Response $response){
     $data = $request->getParsedBody();
 
     global $localidadesCamposRequeridos;
-    $erroresValidacion = validarCampoVacio($data, $localidadesCamposRequeridos);
+    global $longCampoLocalidades;
+    $erroresValidacion = validarCampo($data, $localidadesCamposRequeridos, $longCampoLocalidades);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);
@@ -79,7 +77,8 @@ function putLocalidades(Request $request, Response $response, array $args){
 
     // Verifica si hay información del campo nombre
     global $localidadesCamposRequeridos;
-    $erroresValidacion = validarCampoVacio($data, $localidadesCamposRequeridos);
+    global $longCampoLocalidades;
+    $erroresValidacion = validarCampo($data, $localidadesCamposRequeridos, $longCampoLocalidades);
 
     if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
         return responseWithError($response, $erroresValidacion, 400);

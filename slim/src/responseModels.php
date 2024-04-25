@@ -2,8 +2,9 @@
 
 function responseWithError($response, $error, $statusCode) {
     $payload = json_encode([
-        'error' => $error,
-        'code' => $statusCode
+        'status' => 'failed',
+        'code' => $statusCode,
+        'error' => $error
     ]);
     $response->getBody()->write($payload);
     return $response->withStatus($statusCode)->withHeader('Content-Type', 'application/json');
@@ -11,8 +12,9 @@ function responseWithError($response, $error, $statusCode) {
 
 function responseWithSuccess($response, $message, $statusCode) {
     $payload = json_encode([
-        'message' => $message,
-        'code' => $statusCode
+        'status' => 'success',
+        'code' => $statusCode,
+        'message' => $message
     ]);
     $response->getBody()->write($payload);
     return $response->withStatus($statusCode)->withHeader('Content-Type', 'application/json');
