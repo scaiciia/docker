@@ -6,11 +6,14 @@ use Slim\Factory\AppFactory;
 
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/src/dbConection.php';
+require __DIR__ . '/src/validaciones.php';
+require __DIR__ . '/src/responseModels.php';
 require __DIR__ . '/src/localidadesController.php';
 require __DIR__ . '/src/tiposPropiedadController.php';
 require __DIR__ . '/src/inquilinosController.php';
 require __DIR__ . '/src/propiedadesController.php';
 require __DIR__ . '/src/reservasController.php';
+
 
 $app = AppFactory::create();
 $app->addRoutingMiddleware();
@@ -87,6 +90,22 @@ $app->get('/inquilinos/{id}', function(Request $request, Response $response, arr
     return $response;
 });
 
+$app->put('/inquilinos/{id}', function(Request $request, Response $response, array $args){
+    putInquilino($request, $response, $args);
+    return $response;
+});
+
+$app->delete('/inquilinos/{id}', function(Request $request, Response $response, array $args){
+    deleteInquilino($request, $response, $args);
+    return $response;
+});
+
+$app->get('/inquilinos/{id}/reservas', function(Request $request, Response $response, array $args){
+    getInquilinoReservas($request, $response, $args);
+    return $response;
+});
+
+
 // Propiedades
 $app->post('/propiedades', function(Request $request, Response $response){
     postPropiedades($request, $response);
@@ -112,8 +131,6 @@ $app->get('/propiedades/{id}', function(Request $request, Response $response, ar
     getPropiedad($request, $response, $args);
     return $response;
 });
-
-
 
 // Reserva
 
