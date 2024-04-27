@@ -29,63 +29,66 @@ function getReservas (Request $request, Response $response) {
 
 function postReservas (Request $request, Response $response) {
     $data = $request->getParsedBody();
-    $requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
-    
-    //campo requerido moneda_id ??
-    $arr = [];
-     $fields = "";
-     foreach ($requiredFields as $field) {
-         if (!isset($data[$field]) || empty($data[$field])) {
-             $arr[] = $field; 
-             if (!empty($fields)) {
-                 $fields .= ', '; 
-             }
-             $fields .= $field; 
-         }
-     }
-    if (!empty($arr)){
-        $error = (count($arr) > 1)  ? "fatan los campos requeridos: " : "falta el campo requerido " ;
-        $payload = json_encode([
-            'error' => $error . $fields,
-            'code' => '400'
-        ]);
-        $response->getBody()->write($payload);
+    $requiredFields = ['propiedad_id', 'inquilino_id', 'fecha_inicio_disponibilidad', 'cantidad_noches'];
+    $responseVal = validationFields($data,$requiredFields,$response);
+    if (!$responseVal){
         return $response->withStatus(400);
-    $id = $data['id'];
-    $propiedad_id = $data['propiedad_id'];
-    $inquilino_id = $data['inquilino_id'];
-    $fecha_desde = $data['fecha_desde'];
-    $cantidad_noches = $data['cantidad_noches'];
-    $valor_total = $data['valor_total'];
-    // validar campos obligatorios
-    try{
-        $pdo = getConnection();
+    } else {
+        try{
+            $pdo = getConnection();
 
-        $sql = "INSERT INTO reservas (id,propiedad_id,inquilino_id,fecha_desde,cantidad_noches,valor_total) VALUES (:id,:propiedad_id,:inquilino_id,:fecha_desde,:cantidad_noches,:valor_total)";
-        $consulta = $pdo->prepare($sql);
-        $consulta->bindValue(':id', $id);
-        $consulta->bindValue(':propiedad_id', $propiedad_id);
-        $consulta->bindValue(':inquilino_id', $inquilino_id);
-        $consulta->bindValue(':fecha_desde', $fecha_desde);
-        $consulta->bindValue(':cantidad_noches', $cantidad_noches);
-        $consulta->bindValue(':valor_total', $valor_total);
-        $consulta->execute();
-        $payload = json_encode([
-            'code' => 201,
-            'message' => 'Reserva creada con éxito'
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(201);
-    } catch (\Exception $e){
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
+            $inquilino_id = $data['inquilino_id'];
+            $sql = "SELECT activo FROM inquilinos WHERE id = '". $inquilino_id ."'";
+            $consulta = $pdo->query($sql);
+            $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $active = $resultado[0]['activo'];
+
+            $propiedad_id = $data['propiedad_id'];
+            $sql = "SELECT disponible FROM propiedades WHERE id = '". $propiedad_id ."'";
+            $consulta = $pdo->query($sql);
+            $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $disponible = $resultado[0]['disponible'];
+            if ($active == 1 && $disponible == 1 ) {
+                $cantidad_noches = $data['cantidad_noches'];
+                $sql= "SELECT valor_noche FROM propiedades WHERE id = '". $propiedad_id ."'";
+                $consulta = $pdo->query($sql);
+                $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
+                $valor_total = $resultado[0]['valor_noche']* $cantidad_noches;
+                $fecha_desde = $data['fecha_desde'];
+                $sql = "INSERT INTO reservas (id,propiedad_id,inquilino_id,fecha_desde,cantidad_noches,valor_total) VALUES (:id,:propiedad_id,:inquilino_id,:fecha_desde,:cantidad_noches,:valor_total)";
+                $consulta = $pdo->prepare($sql);
+                $consulta->bindValue(':propiedad_id', $propiedad_id);
+                $consulta->bindValue(':inquilino_id', $inquilino_id);
+                $consulta->bindValue(':fecha_desde', $fecha_desde);
+                $consulta->bindValue(':cantidad_noches', $cantidad_noches);
+                $consulta->bindValue(':valor_total', $valor_total);
+                $consulta->execute();
+                $payload = json_encode([
+                    'code' => 201,
+                    'message' => 'Reserva creada con éxito'
+                ]);
+                $response->getBody()->write($payload);
+                return $response->withStatus(201);
+            } else {
+                // agregar condicion si es que la propiedad no esta o el inquilino no esta
+                $payload = json_encode([
+                    'code' => '200',
+                    'error' => 'La propiedad no se encuenta disponible'
+                ]);
+                $response->getBody()->write($payload);
+                return $response;
+            }
+            } catch (\Exception $e){
+                $payload = json_encode([
+                    'code' => '500',
+                    'error' => $e->getMessage()
+                ]);
+                $response->getBody()->write($payload);
+                return $response->withStatus(500);
+                
+            }
     }
     } 
-}
 
 function deleteReservas (Request $request, Response $response, $args){
     $id = $args['id'];
