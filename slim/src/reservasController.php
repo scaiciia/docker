@@ -175,12 +175,12 @@ function putReservas(Request $request, Response $response, $args)
             $sql .= " valor_total = :valor_total,";
             $params[':valor_total'] = $valor_total;
         }
-        
+
         if (!empty($inquilino_id)) {
             $sql .= " inquilino_id = :inquilino_id,";
             $params[':inquilino_id'] = $inquilino_id;
         }
-        
+
         if (!empty($fecha_inicio_disponibilidad)) {
             $sql .= " fecha_inicio_disponibilidad = :fecha_inicio_disponibilidad,";
             $params[':fecha_inicio_disponibilidad'] = $fecha_inicio_disponibilidad;
@@ -189,7 +189,7 @@ function putReservas(Request $request, Response $response, $args)
         if (!empty($cantidad_noches)) {
             $sql .= " cantidad_noches = :cantidad_noches,";
             $params[':cantidad_noches'] = $cantidad_noches;
-            if (empty($propiedad_id)){
+            if (empty($propiedad_id)) {
                 $sql_2 = "SELECT propiedad_id FROM reservas WHERE id = '" . $id . "'";
                 $consulta = $pdo->query($sql_2);
                 $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -204,18 +204,12 @@ function putReservas(Request $request, Response $response, $args)
             $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $cantidad_noches = $resultado[0]['cantidad_noches'];
             $valor_total = $valor_noche  * $cantidad_noches;
-            $sql .= " valor_total = :valor_total,";
-            if (array_key_exists(':valor_total', $params)) {
-                // Si la clave ya existe, reemplazar su valor
-                $params[':valor_total'] = $valor_total;
-            } else {
-                // Si la clave no existe, agregarla con su valor correspondiente
-                $params[':valor_total'] = $valor_total;
+            if (strpos($sql, "valor_total = :valor_total") === false) {
+                $sql .= " valor_total = :valor_total,";
             }
+            $params[':valor_total'] = $valor_total;
+            $sql = rtrim($sql, ',');
         }
-        //var_dump($valor_total);die;
-        $sql = rtrim($sql, ',');
-
         $sql .= " WHERE id = :id";
         $params[':id'] = $id;
         $consulta = $pdo->prepare($sql);
