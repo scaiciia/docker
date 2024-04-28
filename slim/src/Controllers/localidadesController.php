@@ -31,12 +31,11 @@ function postLocalidades(Request $request, Response $response){
 
     // Obtiene la informacion
     $data = $request->getParsedBody();
-
+    
     global $localidadesCamposRequeridos;
     global $longCampoLocalidades;
     $erroresValidacion = validarCampo($data, $localidadesCamposRequeridos, $longCampoLocalidades);
-
-    if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
+    if (!empty($erroresValidacion)){ // Verificacion errores
         return responseWithError($response, $erroresValidacion, 400);
     } else {
         try {
@@ -74,7 +73,7 @@ function putLocalidades(Request $request, Response $response, array $args){
 
     // Obtiene la informacion
     $data = $request->getParsedBody();
-
+    
     // Verifica si hay información del campo nombre
     global $localidadesCamposRequeridos;
     global $longCampoLocalidades;
@@ -86,38 +85,42 @@ function putLocalidades(Request $request, Response $response, array $args){
         try {
 
             // Obtiene la informacion
-                $id = $args['id'];
+            $id = $args['id'];
+            $error['id'] = validarTipo('id', $id);
+            if (!(isset($error['id']))) {
+                // Conexion a base de datos
+                $pdo = getConnection();
 
-            // Conexion a base de datos
-            $pdo = getConnection();
-
-            // Consulta si existe el id
-            $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
-            $existe = $pdo->query($sql);
-            if ($existe->rowCount() == 0) {
-                return responseWithError($response, 'Not Found', 404);
-            } else {
-
-                // Obtiene el dato
-                $nombre = $data['nombre'];
-
-                // Realiza una consulta a la base de datos para ver si ese nombre ya existe.
-                $validarExistentes = array('nombre' => $nombre);
-
-                $erroresExistentes = validarExistenteDB($pdo, 'localidades', $validarExistentes);
-
-                if (!empty($erroresExistentes)) {
-                    return responseWithError($response, $erroresExistentes, 400);
+                // Consulta si existe el id
+                $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
+                $existe = $pdo->query($sql);
+                if ($existe->rowCount() == 0) {
+                    return responseWithError($response, 'Not Found', 404);
                 } else {
 
-                    // Actualiza el nombre
-                    $sql = "UPDATE localidades SET nombre = (:nombre) WHERE id = (:id)";
-                    $consulta = $pdo->prepare($sql);
-                    $consulta->bindValue(':nombre', $nombre, PDO::PARAM_STR);
-                    $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-                    $consulta->execute();
-                    return responseWithSuccess($response, 'Localidad editada con éxito', 201);
+                    // Obtiene el dato
+                    $nombre = $data['nombre'];
+
+                    // Realiza una consulta a la base de datos para ver si ese nombre ya existe.
+                    $validarExistentes = array('nombre' => $nombre);
+
+                    $erroresExistentes = validarExistenteDB($pdo, 'localidades', $validarExistentes);
+
+                    if (!empty($erroresExistentes)) {
+                        return responseWithError($response, $erroresExistentes, 400);
+                    } else {
+
+                        // Actualiza el nombre
+                        $sql = "UPDATE localidades SET nombre = (:nombre) WHERE id = (:id)";
+                        $consulta = $pdo->prepare($sql);
+                        $consulta->bindValue(':nombre', $nombre, PDO::PARAM_STR);
+                        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+                        $consulta->execute();
+                        return responseWithSuccess($response, 'Localidad editada con éxito', 201);
+                    }
                 }
+            } else {
+                return responseWithError($response, $error, 400);
             }
         } catch (\Exception $e) {
             // Se prdujo un error al editar
@@ -131,23 +134,34 @@ function deleteLocalidades(Request $request, Response $response, array $args){
 
         //obtiene la informacion
         $id = $args['id'];
+        $error['id'] = validarTipo('id', $id);
+        if (!(isset($error['id']))) {
+            // Conexion a base de datos
+            $pdo = getConnection();
 
-        // Conexion a base de datos
-        $pdo = getConnection();
-
-        // Consulta si existe el id
-        $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
-        $existe = $pdo->query($sql);
-        if ($existe->rowCount() == 0) {
-                return responseWithError($response, 'Not Found', 404);
+            // Consulta si existe el id
+            $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
+            $existe = $pdo->query($sql);
+            if ($existe->rowCount() == 0) {
+                    return responseWithError($response, 'Not Found', 404);
+            } else {
+                $sql = "SELECT * FROM propiedades WHERE localidad_id = '" . $id . "'";
+                $resultado = $pdo->query($sql);
+                if ($resultado->rowCount() == 0) {
+                    // Elimina el dato de la base de datos
+                    $sql = "DELETE FROM localidades WHERE id = (:id)";
+                    $consulta = $pdo->prepare($sql);
+                    $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+                    $consulta->execute();
+                    $sql = "ALTER TABLE localidades AUTO_INCREMENT = 1";
+                    $consulta = $pdo->query($sql);
+                    return responseWithSuccess($response, 'Localidad eliminada con éxito', 201);
+                } else {
+                    return responseWithError($response, 'La localidad se esta utilizando en otro registro', 400);
+                }
+            }
         } else {
-
-            // Elimina el dato de la base de datos
-            $sql = "DELETE FROM localidades WHERE id = (:id)";
-            $consulta = $pdo->prepare($sql);
-            $consulta->bindValue(':id', $id, PDO::PARAM_INT);
-            $consulta->execute();
-            return responseWithSuccess($response, 'Localidad eliminada con éxito', 201);
+            return responseWithError($response, $error, 400);
         }
     } catch (\Exception $e) {
 

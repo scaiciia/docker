@@ -5,14 +5,14 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 
 require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/src/dbConection.php';
-require __DIR__ . '/src/validaciones.php';
-require __DIR__ . '/src/responseModels.php';
-require __DIR__ . '/src/localidadesController.php';
-require __DIR__ . '/src/tiposPropiedadController.php';
-require __DIR__ . '/src/inquilinosController.php';
-require __DIR__ . '/src/propiedadesController.php';
-require __DIR__ . '/src/reservasController.php';
+require __DIR__ . '/config/dbConection.php';
+require __DIR__ . '/src/Validators/validaciones.php';
+require __DIR__ . '/src/Models/responseModels.php';
+require __DIR__ . '/src/Controllers/localidadesController.php';
+require __DIR__ . '/src/Controllers/tiposPropiedadController.php';
+require __DIR__ . '/src/Controllers/inquilinosController.php';
+require __DIR__ . '/src/Controllers/propiedadesController.php';
+require __DIR__ . '/src/Controllers/reservasController.php';
 
 
 $app = AppFactory::create();

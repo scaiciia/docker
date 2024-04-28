@@ -9,6 +9,7 @@ function validarTipo($field, $dato) {
 
     $numeric_fields = [
         'cantidad_huespedes',
+        'id',
         'localidad_id',
         'valor_noche',
         'tipo_propiedad_id',
@@ -22,13 +23,22 @@ function validarTipo($field, $dato) {
         'fecha_desde'
     ];
 
+    $image_fields = [
+        'imagen',
+        'tipo_imagen'
+    ];
+
     if (in_array($field, $string_fields, true)) {
-        if (!preg_match('/^[a-zA-Z\s]+$/', $dato)) {
+        if (!preg_match('/^[a-zA-Z0-9\s]+$/', $dato)) {
             return "El campo $field solo debe contener letras y espacios";
         }
     } elseif ($field === 'documento') {
-        if (!ctype_digit($dato)) {
-            return "El campo $field solo debe contener solo números";
+        if (is_string($dato)) {
+            if (!ctype_digit($dato)) {
+                return "El campo $field solo debe contener solo números";
+            }
+        } else {
+            return "El campo $field debe ser una cadena de caracteres";
         }
     } elseif (in_array($field, $numeric_fields, true)) {
         if (!is_numeric($dato)) {
@@ -44,6 +54,10 @@ function validarTipo($field, $dato) {
         if (!is_bool($dato)) {
             return "El campo $field debe ser booleano";
         }
+    } elseif (in_array($filed, $image_fields)) {
+        if (!is_string($dato)) {
+            return "El campo $filed debe ser un string";
+        }
     }
 }
 
@@ -56,6 +70,7 @@ function validarLong($field, $dato, $long) {
 function validarCampo($data, $requiredFields, $longCampo) {
     $camposFaltantes = [];
     $campoInvalido = [];
+    $camposLongInvalida = [];
     foreach ($requiredFields as $field) {
         if ((!isset($data[$field])) || empty($data[$field])) {
             $camposFaltantes[$field] = "El campo $field es requerido";
@@ -72,6 +87,7 @@ function validarCampo($data, $requiredFields, $longCampo) {
             }
         }
     }
+    $errores = array_merge($camposFaltantes, $campoInvalido, $camposLongInvalida);
     return $errores;
 }
 
