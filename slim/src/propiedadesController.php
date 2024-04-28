@@ -5,7 +5,8 @@ require_once __DIR__ . '/../utils/utils.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-function getPropiedades (Request $request, Response $response){
+function getPropiedades(Request $request, Response $response)
+{
 
     $pdo = getConnection();
 
@@ -14,7 +15,7 @@ function getPropiedades (Request $request, Response $response){
     $consulta = $pdo->query($sql);
     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
-    if(isset($resultados) && is_array($resultados) && !empty($resultados)){
+    if (isset($resultados) && is_array($resultados) && !empty($resultados)) {
         $payload = json_encode([
             'status' => 'successss',
             'code' => 200,
@@ -32,12 +33,13 @@ function getPropiedades (Request $request, Response $response){
     return $response->withHeader('Content-Type', 'application/json');
 }
 
-function postPropiedades (Request $request, Response $response){
+function postPropiedades(Request $request, Response $response)
+{
     $data = $request->getParsedBody();
     $requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
-    $responseVal = validationFields($data,$requiredFields,$response);
+    $responseVal = validationFields($data, $requiredFields, $response);
     //var_dump($responseVal);die;
-    if (!$responseVal){
+    if (!$responseVal) {
         return $response->withStatus(400);
     } else {
         try {
@@ -53,20 +55,20 @@ function postPropiedades (Request $request, Response $response){
             $id_localidades = $resultados[0]['id'];
             if (!isset($resultados[1]['id']) && isset($resultados[0]['id'])) {
                 $payload = json_encode([
-                    'error' => "El campo "." $resultados[0]['id'] " . "es incorrecto",
+                    'error' => "El campo " . " $resultados[0]['id'] " . "es incorrecto",
                     'code' => "400"
                 ]);
                 $response->getBody()->write($payload);
                 return $response;
             }
             $tipo_propiedad_id = $resultados[1]['id'];
-            $localidad_id=$resultados[0]['id'];
-            
+            $localidad_id = $resultados[0]['id'];
+
             $id = $data['id'];
             $domicilio = $data['domicilio'];
             $cantidad_habitaciones = $data['cantidad_habitaciones'];
             $cantidad_banios = $data['cantidad_banios'];
-            $cochera = $data['cochera']; 
+            $cochera = $data['cochera'];
             $fecha_inicio_disponibilidad = $data['fecha_inicio_disponibilidad'];
             $cantidad_dias = $data['cantidad_dias'];
             $disponible = $data['disponible'];
@@ -74,7 +76,7 @@ function postPropiedades (Request $request, Response $response){
             $imagen = $data['imagen'];
             $tipo_imagen = $data['tipo_imagen'];
             $cantidad_huespedes = $data['cantidad_huespedes'];
-            
+
             $sql = "INSERT INTO propiedades (id, domicilio, localidad_id, cantidad_habitaciones, cantidad_banios, cochera, cantidad_huespedes, fecha_inicio_disponibilidad, cantidad_dias, disponible, valor_noche, tipo_propiedad_id, imagen, tipo_imagen) VALUES (:id, :domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)";
             $consulta = $pdo->prepare($sql);
             $consulta->bindValue(':id', $id);
@@ -108,13 +110,13 @@ function postPropiedades (Request $request, Response $response){
         }
     }
 }
-    
-    function putPropiedades (Request $request, Response $response, $args){
-        try {
-            
-            $id = $args['id'];
-            $pdo = getConnection();
-        $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'"    ;
+
+function putPropiedades(Request $request, Response $response, $args)
+{
+    $id = $args['id'];
+    try {
+        $pdo = getConnection();
+        $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
         $consulta =  $pdo->query($sql);
         if ($consulta->rowCount() == 0) {
             $payload = json_encode([
@@ -123,8 +125,7 @@ function postPropiedades (Request $request, Response $response){
             ]);
             $response->getBody()->write($payload);
             return $response->withStatus(404);
-        }else{
-            
+        } else {
             $data = $request->getParsedBody();
             $tipo_propiedad_id = isset($data['tipo_propiedad_id']) ? $data['tipo_propiedad_id'] : null;
             $localidad_id = isset($data['localidad_id']) ? $data['localidad_id'] : null;
@@ -142,7 +143,7 @@ function postPropiedades (Request $request, Response $response){
 
             $sql = "UPDATE propiedades SET";
             $params = [];
-            
+
             if (!empty($domicilio)) {
                 $sql .= " domicilio = :domicilio,";
                 $params[':domicilio'] = $domicilio;
@@ -161,47 +162,47 @@ function postPropiedades (Request $request, Response $response){
                 $sql .= " cantidad_banios = :cantidad_banios,";
                 $params[':cantidad_banios'] = $cantidad_banios;
             }
-            
+
             if (!empty($cochera)) {
                 $sql .= " cochera = :cochera,";
                 $params[':cochera'] = $cochera;
             }
-            
+
             if (!empty($cantidad_huespedes)) {
                 $sql .= " cantidad_huespedes = :cantidad_huespedes,";
                 $params[':cantidad_huespedes'] = $cantidad_huespedes;
             }
-            
+
             if (!empty($fecha_inicio_disponibilidad)) {
                 $sql .= " fecha_inicio_disponibilidad = :fecha_inicio_disponibilidad,";
                 $params[':fecha_inicio_disponibilidad'] = $fecha_inicio_disponibilidad;
             }
-            
+
             if (!empty($cantidad_dias)) {
                 $sql .= " cantidad_dias = :cantidad_dias,";
                 $params[':cantidad_dias'] = $cantidad_dias;
             }
-            
+
             if (!empty($disponible)) {
                 $sql .= " disponible = :disponible,";
                 $params[':disponible'] = $disponible;
             }
-            
+
             if (!empty($valor_noche)) {
                 $sql .= " valor_noche = :valor_noche,";
                 $params[':valor_noche'] = $valor_noche;
             }
 
-            if (!empty($tipo_propiedad_id)){
+            if (!empty($tipo_propiedad_id)) {
                 $sql .= " tipo_propiedad_id = :tipo_propiedad_id,";
                 $params[':tipo_propiedad_id'] = $tipo_propiedad_id;
             }
-            
+
             if (!empty($imagen)) {
                 $sql .= " imagen = :imagen,";
                 $params[':imagen'] = $imagen;
             }
-            
+
             if (!empty($tipo_imagen)) {
                 $sql .= " tipo_imagen = :tipo_imagen,";
                 $params[':tipo_imagen'] = $tipo_imagen;
@@ -224,30 +225,30 @@ function postPropiedades (Request $request, Response $response){
             $response->getBody()->write($payload);
             return $response->withStatus(201);
         }
-            
-        } catch (\Exception $e) {
+    } catch (\Exception $e) {
 
-            $payload = json_encode([
-                'code' => '500',
-                'error' => $e->getMessage()
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(500);
-        }
+        $payload = json_encode([
+            'code' => '500',
+            'error' => $e->getMessage()
+        ]);
+        $response->getBody()->write($payload);
+        return $response->withStatus(500);
+    }
 }
 
-function getPropiedad (Request $request, Response $response , $args) {
+function getPropiedad(Request $request, Response $response, $args)
+{
     $id = $args['id'];
     try {
         $pdo = getConnection();
-        $sql = "SELECT * FROM propiedades WHERE id = '" . $id ."'";
+        $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
         if ($consulta->rowCount() == 0) {
             $payload = json_encode([
-                    'error' => 'ID Not Found',
-                    'code' => 404
+                'error' => 'ID Not Found',
+                'code' => 404
             ]);
-            $response-> getBody()->write($payload);
+            $response->getBody()->write($payload);
             return $response->withStatus(404);
         } else {
             $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -258,8 +259,8 @@ function getPropiedad (Request $request, Response $response , $args) {
             ]);
             $response->getBody()->write($payload);
             return $response->withHeader('Content-Type', 'application/json');
-        }    
-    } catch (\Exception $e){
+        }
+    } catch (\Exception $e) {
         $payload = json_encode([
             'code' => '500',
             'error' => $e->getMessage()
@@ -267,19 +268,19 @@ function getPropiedad (Request $request, Response $response , $args) {
         $response->getBody()->write($payload);
         return $response->withStatus(500);
     }
-
 }
 
-function deletePropiedades(Request $request, Response $response , $args){
-   $id = $args['id'];
+function deletePropiedades(Request $request, Response $response, $args)
+{
+    $id = $args['id'];
     try {
         $pdo = getConnection();
         $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
         if ($consulta->rowCount() == 0) {
             $payload = json_encode([
-                    'error' => 'Not Found',
-                    'code' => 404
+                'error' => 'Not Found',
+                'code' => 404
             ]);
             $response->getBody()->write($payload);
             return $response->withStatus(404);
@@ -294,7 +295,7 @@ function deletePropiedades(Request $request, Response $response , $args){
             ]);
             $response->getBody()->write($payload);
             return $response->withStatus(201);
-        }    
+        }
     } catch (\Exception $e) {
         $payload = json_encode([
             'code' => '500',
@@ -302,5 +303,5 @@ function deletePropiedades(Request $request, Response $response , $args){
         ]);
         $response->getBody()->write($payload);
         return $response->withStatus(500);
-   } 
+    }
 }
