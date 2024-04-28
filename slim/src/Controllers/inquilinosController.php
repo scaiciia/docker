@@ -14,10 +14,14 @@ function getInquilinos(Request $request, Response $response){
         // Consulta a la base de datos
         $sql = "SELECT * FROM inquilinos";
         $consulta = $pdo->query($sql);
-        $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
         // Retorna el resultado en un JSON
-        return responseWithData($response, $resultados, 200);
+        if ($consulta->rowCount() != 0) {
+            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            return responseWithData($response, $resultados, 200);
+        } else {
+            return responseWithError($response, 'No se encontraron inquilinos', 404);
+        }
     } catch (\Exception $e) {
         return responseWithError($response, $e, 500);
     }
@@ -86,9 +90,9 @@ function getInquilino(Request $request, Response $response, array $args){
             $sql = "SELECT * FROM inquilinos WHERE id = '" . $id . "'";
             $consulta = $pdo->query($sql);
             if ($consulta->rowCount() == 0) {
-                return responseWithError($response, 'Not Found', 404);
+                return responseWithError($response, 'no se encontró inquilino', 404);
             } else {
-                $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+                $resultados = $consulta->fetch(PDO::FETCH_ASSOC);
 
                 // Retorna el resultado en un JSON
                 return responseWithData($response, $resultados, 200);
@@ -126,7 +130,7 @@ function putInquilino(Request $request, Response $response, array $args) {
                 $sql = "SELECT * FROM inquilinos WHERE id = '" . $id . "'";
                 $consulta = $pdo->query($sql);
                 if ($consulta->rowCount() == 0) {
-                    return responseWithError($response, 'Not Found', 404);
+                    return responseWithError($response, 'No se encontró inquilino', 404);
                 } else {
                     // Recupera el dato email
                     $opcional = "AND id != '". $id . "'";
@@ -176,7 +180,7 @@ function deleteInquilino(Request $request, Response $response, array $args){
             $sql = "SELECT * FROM inquilinos WHERE id = '" . $id . "'";
             $consulta = $pdo->query($sql);
             if ($consulta->rowCount() == 0) {
-                return responseWithError($response, 'Not Found', 404);
+                return responseWithError($response, 'No se encontró inquilino', 404);
             } else {
                 $sql = "SELECT * FROM reservas WHERE inquilino_id = '" . $id . "'";
                 $resultado = $pdo->query($sql);
@@ -216,7 +220,7 @@ function getInquilinoReservas(Request $request, Response $response, array $args)
             $consulta = $pdo->query($sql);
             $inquilino = $consulta->fetch(PDO::FETCH_ASSOC);
             if ($consulta->rowCount() == 0) {
-                return responseWithError($response, 'Not Found', 404);
+                return responseWithError($response, 'No se encontró inquilino', 404);
             } else {
 
                 $sql = "SELECT * FROM reservas WHERE inquilino_id = ?";
@@ -248,7 +252,11 @@ function getInquilinoReservas(Request $request, Response $response, array $args)
                     $resultados[] = $reserva;
                 }
                 // Retorna el resultado en un JSON
-                return responseWithData($response, $resultados, 200);
+                if (!isset($resultados)) {
+                    return responseWithData($response, $resultados, 200);
+                } else {
+                    return responseWithError($response, 'No encontraron reservas del inquilino', 404);
+                }
             }
         } else {
             return responseWithError($response, $error, 400);

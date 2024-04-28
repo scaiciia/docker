@@ -14,13 +14,13 @@ function getLocalidades(Request $request, Response $response){
             // Consulta a la base de datos
             $sql = "SELECT * FROM localidades ORDER BY id" ;
             $consulta = $pdo->query($sql);
-            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
             // Retorna el resultado en un JSON
-            if(isset($resultados) && is_array($resultados) && !empty($resultados)){
+            if($consulta->rowCount() != 0){
+                $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
                 return responseWithData($response, $resultados, 200);
             } else {
-                return responseWithError($response, 'No hay localidades en la base', 400);
+                return responseWithError($response, 'No se encontraron localidades', 404);
             }
     } catch (\Exception $e) {
         return responseWithError($response, $e, 500);
@@ -95,7 +95,7 @@ function putLocalidades(Request $request, Response $response, array $args){
                 $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
                 $existe = $pdo->query($sql);
                 if ($existe->rowCount() == 0) {
-                    return responseWithError($response, 'Not Found', 404);
+                    return responseWithError($response, 'No se encontró localidad', 404);
                 } else {
 
                     // Obtiene el dato
@@ -143,7 +143,7 @@ function deleteLocalidades(Request $request, Response $response, array $args){
             $sql = "SELECT * FROM localidades WHERE id = '" . $id . "'";
             $existe = $pdo->query($sql);
             if ($existe->rowCount() == 0) {
-                    return responseWithError($response, 'Not Found', 404);
+                    return responseWithError($response, 'No se encontró localidad', 404);
             } else {
                 $sql = "SELECT * FROM propiedades WHERE localidad_id = '" . $id . "'";
                 $resultado = $pdo->query($sql);
@@ -153,8 +153,8 @@ function deleteLocalidades(Request $request, Response $response, array $args){
                     $consulta = $pdo->prepare($sql);
                     $consulta->bindValue(':id', $id, PDO::PARAM_INT);
                     $consulta->execute();
-                    $sql = "ALTER TABLE localidades AUTO_INCREMENT = 1";
-                    $consulta = $pdo->query($sql);
+                    $stmt = $pdo->prepare("ALTER TABLE localidades AUTO_INCREMENT = 1");
+                    $stmt->execute();
                     return responseWithSuccess($response, 'Localidad eliminada con éxito', 201);
                 } else {
                     return responseWithError($response, 'La localidad se esta utilizando en otro registro', 400);
