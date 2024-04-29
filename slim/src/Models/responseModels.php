@@ -7,7 +7,7 @@ function responseWithError($response, $error, $statusCode) {
         'error' => $error
     ]);
     $response->getBody()->write($payload);
-    return $response->withStatus($statusCode)->withHeader('Content-Type', 'application/json');
+    return $response->withStatus($statusCode);
 }
 
 function responseWithSuccess($response, $message, $statusCode) {
@@ -17,7 +17,7 @@ function responseWithSuccess($response, $message, $statusCode) {
         'message' => $message
     ]);
     $response->getBody()->write($payload);
-    return $response->withStatus($statusCode)->withHeader('Content-Type', 'application/json');
+    return $response->withStatus($statusCode);
 }
 
 function responseWithData($response, $data, $statusCode) {
@@ -27,5 +27,5 @@ function responseWithData($response, $data, $statusCode) {
         'data' => $data
     ]);
     $response->getBody()->write($payload);
-    return $response->withStatus($statusCode)->withHeader('Content-Type', 'application/json');
+    return $response->withStatus($statusCode);
 }
