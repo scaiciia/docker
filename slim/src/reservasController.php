@@ -31,7 +31,7 @@ function getReservas(Request $request, Response $response)
 function postReservas(Request $request, Response $response)
 {
     $data = $request->getParsedBody();
-    $requiredFields = ['propiedad_id', 'inquilino_id', 'fecha_inicio_disponibilidad', 'cantidad_noches'];
+    $requiredFields = ['propiedad_id', 'inquilino_id', 'fecha_desde', 'cantidad_noches'];
     $responseVal = validationFields($data, $requiredFields, $response);
     if (!$responseVal) {
         return $response->withStatus(400);
@@ -52,12 +52,27 @@ function postReservas(Request $request, Response $response)
             $disponible = $resultado[0]['disponible'];
             if ($active == 1 && $disponible == 1) {
                 $cantidad_noches = $data['cantidad_noches'];
+                $fecha_desde = $data['fecha_desde'];
                 $sql = "SELECT valor_noche FROM propiedades WHERE id = '" . $propiedad_id . "'";
                 $consulta = $pdo->query($sql);
                 $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
                 $valor_total = $resultado[0]['valor_noche'] * $cantidad_noches;
-                $fecha_desde = $data['fecha_desde'];
-                $sql = "INSERT INTO reservas (id,propiedad_id,inquilino_id,fecha_desde,cantidad_noches,valor_total) VALUES (:id,:propiedad_id,:inquilino_id,:fecha_desde,:cantidad_noches,:valor_total)";
+                $sql = "SELECT fecha_inicio_disponibilidad FROM propiedades WHERE id = '" . $propiedad_id . "'";
+                $consulta = $pdo->query($sql);
+                $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
+                $fecha_inicio_disponibilidad = $resultado[0]['fecha_inicio_disponibilidad'];
+                $fecha1 = new DateTime($fecha_inicio_disponibilidad);
+                $fecha2 = new DateTime($fecha_desde);
+                if ( $fecha2 < $fecha1 ) {
+                    $payload = json_encode([
+                        'code' => 201,
+                        'message' => 'La propiedad no esta disponible en esta fecha'
+                    ]);
+                    $response->getBody()->write($payload);
+                    return $response->withStatus(201);
+                }
+                
+                $sql = "INSERT INTO reservas (propiedad_id,inquilino_id,fecha_desde,cantidad_noches,valor_total) VALUES (:propiedad_id,:inquilino_id,:fecha_desde,:cantidad_noches,:valor_total)";
                 $consulta = $pdo->prepare($sql);
                 $consulta->bindValue(':propiedad_id', $propiedad_id);
                 $consulta->bindValue(':inquilino_id', $inquilino_id);
@@ -69,14 +84,23 @@ function postReservas(Request $request, Response $response)
                     'code' => 201,
                     'message' => 'Reserva creada con éxito'
                 ]);
+
                 $response->getBody()->write($payload);
                 return $response->withStatus(201);
             } else {
                 // agregar condicion si es que la propiedad no esta o el inquilino no esta
-                $payload = json_encode([
-                    'code' => '200',
-                    'error' => 'La propiedad no se encuenta disponible'
-                ]);
+                if ($disponible == 0 ){
+
+                    $payload = json_encode([
+                        'code' => '200',
+                        'error' => 'La propiedad no se encuenta disponible'
+                    ]);
+                } else if($active == 0){
+                    $payload = json_encode([
+                        'code' => '200',
+                        'error' => 'El inquilino no se encuentra disponible'
+                    ]);
+                }
                 $response->getBody()->write($payload);
                 return $response;
             }
@@ -104,8 +128,7 @@ function deleteReservas(Request $request, Response $response, $args)
         $fecha_actual = date("Y-m-d");
         $fecha1 = new DateTime($fecha_desde);
         $fecha2 = new DateTime($fecha_actual);
-        // var_dump($resultado[0]['fecha_desde'],$fecha_actual);die;
-        if ($fecha_desde < $fecha_actual) {
+        if ($fecha1 < $fecha2) {
             $payload = json_encode([
                 'code' => 201,
                 'message' => 'La reserva no se puede eliminar una vez iniciada la estadía'
