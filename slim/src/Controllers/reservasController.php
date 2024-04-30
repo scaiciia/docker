@@ -13,20 +13,11 @@ function getReservas(Request $request, Response $response)
         $sql = "SELECT * FROM reservas";
         $consulta = $pdo->query($sql);
         $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
-        $payload = json_encode([
-            'status' => 'success',
-            'code' => 200,
-            'data' => $resultados
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(200);
+        responseWithData($response, $resultados, 200);
+        return $response;
     } catch (\Exception $e) {
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
+        responseWithError($response, $e, 500);
+        return $response;
     }
 };
 
@@ -67,12 +58,8 @@ function postReservas(Request $request, Response $response)
                 $fecha1 = new DateTime($fecha_inicio_disponibilidad);
                 $fecha2 = new DateTime($fecha_desde);
                 if ($fecha2 < $fecha1) {
-                    $payload = json_encode([
-                        'code' => 201,
-                        'message' => 'La propiedad no esta disponible en esta fecha'
-                    ]);
-                    $response->getBody()->write($payload);
-                    return $response->withStatus(201);
+                    responseWithSuccess($response, 'La propiedad no esta disponible en esta fecha', 201);
+                    return $response;
                 }
 
                 $sql = "INSERT INTO reservas (propiedad_id,inquilino_id,fecha_desde,cantidad_noches,valor_total) VALUES (:propiedad_id,:inquilino_id,:fecha_desde,:cantidad_noches,:valor_total)";
@@ -83,37 +70,21 @@ function postReservas(Request $request, Response $response)
                 $consulta->bindValue(':cantidad_noches', $cantidad_noches);
                 $consulta->bindValue(':valor_total', $valor_total);
                 $consulta->execute();
-                $payload = json_encode([
-                    'code' => 201,
-                    'message' => 'Reserva creada con éxito'
-                ]);
-
-                $response->getBody()->write($payload);
-                return $response->withStatus(201);
+                responseWithSuccess($response, 'Reserva creada con éxito', 201);
+                return $response;
             } else {
 
                 if ($disponible == 0) {
-
-                    $payload = json_encode([
-                        'code' => '200',
-                        'error' => 'La propiedad no se encuenta disponible'
-                    ]);
+                    $mensaje = 'La propiedad no se encuenta disponible';
                 } else if ($active == 0) {
-                    $payload = json_encode([
-                        'code' => '200',
-                        'error' => 'El inquilino no se encuentra disponible'
-                    ]);
+                    $mensaje = 'El inquilino no se encuentra disponible';
                 }
-                $response->getBody()->write($payload);
+                responseWithSuccess($response, $mensaje, 200);
                 return $response;
             }
         } catch (\Exception $e) {
-            $payload = json_encode([
-                'code' => '500',
-                'error' => $e->getMessage()
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(500);
+            responseWithError($response, $e, 500);
+            return $response;
         }
     }
 }
@@ -140,30 +111,18 @@ function deleteReservas(Request $request, Response $response, $args)
         $fecha1 = new DateTime($fecha_desde);
         $fecha2 = new DateTime($fecha_actual);
         if ($fecha1 < $fecha2) {
-            $payload = json_encode([
-                'code' => 201,
-                'message' => 'La reserva no se puede eliminar una vez iniciada la estadía'
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(201);
+            responseWithSuccess($response, 'La reserva no se puede eliminar una vez iniciada la estadía', 201);
+            return $response;
         }
         $sql = "DELETE FROM reservas WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
         $stmt = $pdo->prepare("ALTER TABLE reservas AUTO_INCREMENT = 1");
         $stmt->execute();
-        $payload = json_encode([
-            'code' => 201,
-            'message' => 'Reserva borrada con éxito'
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(201);
+        responseWithSuccess($response, 'Reserva borrada con éxito', 201);
+        return $response;
     } catch (\Exception $e) {
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
+        responseWithError($response, $e, 500);
+        return $response;
     }
 }
 
@@ -191,12 +150,8 @@ function putReservas(Request $request, Response $response, $args)
         $fecha1 = new DateTime($fecha_desde);
         $fecha2 = new DateTime($fecha_actual);
         if ($fecha1 < $fecha2) {
-            $payload = json_encode([
-                'code' => 201,
-                'message' => 'La reserva no se puede modificar una vez iniciada la estadía'
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(201);
+            responseWithSuccess($response, 'La reserva no se puede modificar una vez iniciada la estadía', 201);
+            return $response;
         }
         $data = $request->getParsedBody();
         $inquilino_id = $data['inquilino_id'];
@@ -224,12 +179,8 @@ function putReservas(Request $request, Response $response, $args)
             $fecha1 = new DateTime($fecha_inicio_disponibilidad);
             $fecha2 = new DateTime($fecha_desde);
             if ($fecha2 < $fecha1) {
-                $payload = json_encode([
-                    'code' => 201,
-                    'message' => 'La propiedad no esta disponible en esta fecha'
-                ]);
-                $response->getBody()->write($payload);
-                return $response->withStatus(201);
+                responseWithSuccess($response, 'La propiedad no esta disponible en esta fecha', 201);
+                return $response;
             }
 
             $sql = "UPDATE reservas SET propiedad_id = :propiedad_id, inquilino_id = :inquilino_id, fecha_desde = :fecha_desde, cantidad_noches = :cantidad_noches, valor_total = :valor_total WHERE id = (:id)";
@@ -241,36 +192,20 @@ function putReservas(Request $request, Response $response, $args)
             $consulta->bindValue(':cantidad_noches', $cantidad_noches);
             $consulta->bindValue(':valor_total', $valor_total);
             $consulta->execute();
-            $payload = json_encode([
-                'code' => 201,
-                'message' => 'Reserva modficada con éxito'
-            ]);
-
-            $response->getBody()->write($payload);
-            return $response->withStatus(201);
+            responseWithSuccess($response, 'Reserva modficada con éxito', 201);
+            return $response;
         } else {
 
             if ($disponible == 0) {
-
-                $payload = json_encode([
-                    'code' => '200',
-                    'error' => 'La propiedad no se encuenta disponible'
-                ]);
+                $mensaje = 'La propiedad no se encuenta disponible';
             } else if ($active == 0) {
-                $payload = json_encode([
-                    'code' => '200',
-                    'error' => 'El inquilino no se encuentra disponible'
-                ]);
+                $mensaje = 'El inquilino no se encuentra disponible';
             }
-            $response->getBody()->write($payload);
+            responseWithSuccess($response, $mensaje, 200);
             return $response;
         }
     } catch (\Exception $e) {
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
+        reponseWithError($response, $e, 500);
+        return $response;
     }
 }

@@ -17,21 +17,11 @@ function getPropiedades(Request $request, Response $response)
     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
     if (isset($resultados) && is_array($resultados) && !empty($resultados)) {
-        $payload = json_encode([
-            'status' => 'successss',
-            'code' => 200,
-            'data' => $resultados
-        ]);
+        responseWithSuccess($response, $resultados, 200);
     } else {
-        $payload = json_encode([
-            'status' => 'failed',
-            'code' => 400,
-            'error' => 'No hay propiedades en la base'
-        ]);
+        responseWithError($response, 'No hay propiedades en la base', 400);
     }
-
-    $response->getBody()->write($payload);
-    return $response->withHeader('Content-Type', 'application/json');
+    return $response;
 }
 
 function postPropiedades(Request $request, Response $response)
@@ -78,19 +68,11 @@ function postPropiedades(Request $request, Response $response)
             $consulta->bindValue(':imagen', $imagen);
             $consulta->bindValue(':tipo_imagen', $tipo_imagen);
             $consulta->execute();
-            $payload = json_encode([
-                'code' => 201,
-                'message' => 'Propiedad creado con éxito'
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(201);
+            responseWithSuccess($response, 'Propiedad creado con éxito', 201);
+            return $response;
         } catch (\Exception $e) {
-            $payload = json_encode([
-                'code' => '500',
-                'error' => $e->getMessage()
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(500);
+            responseWithError($response, $e, 500);
+            return $response;
         }
     }
 }
@@ -148,12 +130,8 @@ function putPropiedades(Request $request, Response $response, $args)
 
             return responseWithSuccess($response, 'Propiedad modificada con éxito', 201);
         } catch (\Exception $e) {
-            $payload = json_encode([
-                'code' => '500',
-                'error' => $e->getMessage()
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(500);
+            responseWithError($response, $e, 500);
+            return $response;
         }
     }
 }
@@ -166,29 +144,16 @@ function getPropiedad(Request $request, Response $response, $args)
         $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
         if ($consulta->rowCount() == 0) {
-            $payload = json_encode([
-                'error' => 'ID Not Found',
-                'code' => 404
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(404);
+            responseWithError($response, 'ID Not Found', 404);
+            return $response;
         } else {
             $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $payload = json_encode([
-                'status' => 'success',
-                'code' => 200,
-                'data' => $resultados
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withHeader('Content-Type', 'application/json');
+            responseWithSuccess($response, $resultados, 200);
+            return $response;
         }
     } catch (\Exception $e) {
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
+        responseWithError($response, $e, 500);
+        return $response;
     }
 }
 
@@ -213,19 +178,11 @@ function deletePropiedades(Request $request, Response $response, $args)
             $consulta->execute();
             $stmt = $pdo->prepare("ALTER TABLE propiedades AUTO_INCREMENT = 1");
             $stmt->execute();
-            $payload = json_encode([
-                'code' => 201,
-                'message' => 'Propiedad eliminada con éxito'
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(201);
+            responseWithSuccess($response, 'Propiedad eliminada con éxito', 201);
+            return $response;
         }
     } catch (\Exception $e) {
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
+        responseWithError($response, $e, 500);
+        return $response;
     }
 }
