@@ -1,7 +1,7 @@
 <?php
 
 $longCampoPropiedades = array('domicilio' => 225, 'tipo_imagen' => 50);
-$propiedadesCamposRequeridos = ['domicilio','localidad_id','cantidad_huespedes','fecha_inicio_disponibilidad','cantidad_dias', 'disponible','valor_noche','tipo_propiedad_id'];
+$propiedadesCamposRequeridos = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -37,11 +37,11 @@ function getPropiedades(Request $request, Response $response)
 function postPropiedades(Request $request, Response $response)
 {
     $data = $request->getParsedBody();
-    
+
     global $propiedadesCamposRequeridos;
     global $longCampoPropiedades;
     $erroresValidacion = validarCampo($data, $propiedadesCamposRequeridos, $longCampoPropiedades);
-    
+
     if (!empty($erroresValidacion)) {
         return responseWithError($response, $erroresValidacion, 400);
     } else {
@@ -98,21 +98,21 @@ function postPropiedades(Request $request, Response $response)
 function putPropiedades(Request $request, Response $response, $args)
 {
     $data = $request->getParsedBody();
-    
+
     global $propiedadesCamposRequeridos;
     global $longCampoPropiedades;
     $erroresValidacion = validarCampo($data, $propiedadesCamposRequeridos, $longCampoPropiedades);
     $id = $args['id'];
     $error['id'] = validarTipo('id', $id);
-    
-    if (!empty($erroresValidacion) ) {
+
+    if (!empty($erroresValidacion)) {
         return responseWithError($response, $erroresValidacion, 400);
-    }else if(isset($error['id'])) {
+    } else if (isset($error['id'])) {
         return responseWithError($response, $error, 400);
     } else {
         try {
             $pdo = getConnection();
-            
+
             $tipo_propiedad_id = $data['tipo_propiedad_id'];
             $localidad_id = $data['localidad_id'];
             $domicilio = $data['domicilio'];
@@ -145,7 +145,7 @@ function putPropiedades(Request $request, Response $response, $args)
             $consulta->bindValue(':imagen', $imagen);
             $consulta->bindValue(':tipo_imagen', $tipo_imagen);
             $consulta->execute();
-            
+
             return responseWithSuccess($response, 'Propiedad modificada con éxito', 201);
         } catch (\Exception $e) {
             $payload = json_encode([
@@ -195,6 +195,11 @@ function getPropiedad(Request $request, Response $response, $args)
 function deletePropiedades(Request $request, Response $response, $args)
 {
     $id = $args['id'];
+    $id = $args['id'];
+    $error['id'] = validarTipo('id', $id);
+    if (isset($error['id'])) {
+        return responseWithError($response, $error, 400);
+    }
     try {
         $pdo = getConnection();
         $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
