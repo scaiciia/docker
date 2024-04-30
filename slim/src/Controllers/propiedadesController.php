@@ -195,7 +195,6 @@ function getPropiedad(Request $request, Response $response, $args)
 function deletePropiedades(Request $request, Response $response, $args)
 {
     $id = $args['id'];
-    $id = $args['id'];
     $error['id'] = validarTipo('id', $id);
     if (isset($error['id'])) {
         return responseWithError($response, $error, 400);
@@ -204,18 +203,16 @@ function deletePropiedades(Request $request, Response $response, $args)
         $pdo = getConnection();
         $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
+        var_dump($id);
         if ($consulta->rowCount() == 0) {
-            $payload = json_encode([
-                'error' => 'Not Found',
-                'code' => 404
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(404);
+            return responseWithError($response, 'No se encontró una propiedad con ese id', 404);
         } else {
             $sql = "DELETE FROM propiedades WHERE id = (:id)";
             $consulta = $pdo->prepare($sql);
             $consulta->bindValue(':id', $id, PDO::PARAM_INT);
             $consulta->execute();
+            $stmt = $pdo->prepare("ALTER TABLE propiedades AUTO_INCREMENT = 1");
+            $stmt->execute();
             $payload = json_encode([
                 'code' => 201,
                 'message' => 'Propiedad eliminada con éxito'

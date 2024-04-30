@@ -127,6 +127,11 @@ function deleteReservas(Request $request, Response $response, $args)
     }
     try {
         $pdo = getConnection();
+        $sql = "SELECT * FROM reservas WHERE id = '" . $id . "'";
+        $consulta = $pdo->query($sql);
+        if ($consulta->rowCount() == 0) {
+            return responseWithError($response, 'No se encontró una reserva con ese id', 404);
+        }
         $sql = "SELECT fecha_desde FROM reservas WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
         $resultado = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -144,6 +149,8 @@ function deleteReservas(Request $request, Response $response, $args)
         }
         $sql = "DELETE FROM reservas WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
+        $stmt = $pdo->prepare("ALTER TABLE reservas AUTO_INCREMENT = 1");
+        $stmt->execute();
         $payload = json_encode([
             'code' => 201,
             'message' => 'Reserva borrada con éxito'
