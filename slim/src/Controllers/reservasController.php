@@ -236,7 +236,7 @@ function putReservas(Request $request, Response $response, $args)
             $consulta->execute();
             $payload = json_encode([
                 'code' => 201,
-                'message' => 'Reserva creada con éxito'
+                'message' => 'Reserva modficada con éxito'
             ]);
 
             $response->getBody()->write($payload);
