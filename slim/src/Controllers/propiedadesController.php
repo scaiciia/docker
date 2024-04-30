@@ -1,5 +1,4 @@
 <?php
-//require_once __DIR__ . '../../utils/utils.php';
 
 $longCampoPropiedades = array('domicilio' => 225, 'tipo_imagen' => 50);
 $propiedadesCamposRequeridos = ['domicilio','localidad_id','cantidad_huespedes','fecha_inicio_disponibilidad','cantidad_dias', 'disponible','valor_noche','tipo_propiedad_id'];
@@ -38,54 +37,33 @@ function getPropiedades(Request $request, Response $response)
 function postPropiedades(Request $request, Response $response)
 {
     $data = $request->getParsedBody();
-    //$requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
     
     global $propiedadesCamposRequeridos;
     global $longCampoPropiedades;
     $erroresValidacion = validarCampo($data, $propiedadesCamposRequeridos, $longCampoPropiedades);
-    //$responseVal = validationFields($data, $requiredFields, $response);
-    //var_dump($responseVal);die;
+    
     if (!empty($erroresValidacion)) {
         return responseWithError($response, $erroresValidacion, 400);
     } else {
         try {
             $pdo = getConnection();
-            $nombre_localidad = $data['localidad_id'];
-            $nombre_tipo_propiedad = $data['tipo_propiedad_id'];
-            $sql = "SELECT id  FROM localidades WHERE nombre = (:nombre_localidad) UNION SELECT id FROM tipo_propiedades WHERE nombre = (:nombre_tipo_propiedad)";
-            $consulta = $pdo->prepare($sql);
-            $consulta->bindValue(':nombre_localidad', $nombre_localidad);
-            $consulta->bindValue(':nombre_tipo_propiedad', $nombre_tipo_propiedad);
-            $consulta->execute();
-            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            //$id_localidades = $resultados[0]['id'];
-            if (!isset($resultados[1]['id']) && isset($resultados[0]['id'])) {
-                $payload = json_encode([
-                    'error' => "El campo " . " $resultados[0]['id'] " . "es incorrecto",
-                    'code' => "400"
-                ]);
-                $response->getBody()->write($payload);
-                return $response;
-            }
-            $tipo_propiedad_id = $resultados[1]['id'];
-            $localidad_id = $resultados[0]['id'];
 
-            $id = $data['id'];
+            $tipo_propiedad_id = $data['tipo_propiedad_id'];
+            $localidad_id = $data['localidad_id'];
             $domicilio = $data['domicilio'];
-            $cantidad_habitaciones = $data['cantidad_habitaciones'];
-            $cantidad_banios = $data['cantidad_banios'];
-            $cochera = $data['cochera'];
+            $cantidad_habitaciones = isset($data['cantidad_habitaciones']) ? $data['cantidad_habitaciones'] : null;
+            $cantidad_banios = isset($data['cantidad_banios']) ? $data['cantidad_banios'] : null;
+            $cochera = isset($data['cochera']) ? $data['cochera'] : null;
+            $cantidad_huespedes = $data['cantidad_huespedes'];
             $fecha_inicio_disponibilidad = $data['fecha_inicio_disponibilidad'];
             $cantidad_dias = $data['cantidad_dias'];
             $disponible = $data['disponible'];
             $valor_noche = $data['valor_noche'];
-            $imagen = $data['imagen'];
-            $tipo_imagen = $data['tipo_imagen'];
-            $cantidad_huespedes = $data['cantidad_huespedes'];
+            $imagen = isset($data['imagen']) ? $data['imagen'] : null;
+            $tipo_imagen = isset($data['tipo_imagen']) ? $data['tipo_imagen'] : null;
 
-            $sql = "INSERT INTO propiedades (id, domicilio, localidad_id, cantidad_habitaciones, cantidad_banios, cochera, cantidad_huespedes, fecha_inicio_disponibilidad, cantidad_dias, disponible, valor_noche, tipo_propiedad_id, imagen, tipo_imagen) VALUES (:id, :domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)";
+            $sql = "INSERT INTO propiedades (domicilio, localidad_id, cantidad_habitaciones, cantidad_banios, cochera, cantidad_huespedes, fecha_inicio_disponibilidad, cantidad_dias, disponible, valor_noche, tipo_propiedad_id, imagen, tipo_imagen) VALUES (:domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)";
             $consulta = $pdo->prepare($sql);
-            $consulta->bindValue(':id', $id);
             $consulta->bindValue(':domicilio', $domicilio);
             $consulta->bindValue(':localidad_id', $localidad_id);
             $consulta->bindValue(':cantidad_habitaciones', $cantidad_habitaciones);
@@ -119,126 +97,64 @@ function postPropiedades(Request $request, Response $response)
 
 function putPropiedades(Request $request, Response $response, $args)
 {
+    $data = $request->getParsedBody();
+    
+    global $propiedadesCamposRequeridos;
+    global $longCampoPropiedades;
+    $erroresValidacion = validarCampo($data, $propiedadesCamposRequeridos, $longCampoPropiedades);
     $id = $args['id'];
-    try {
-        $pdo = getConnection();
-        $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
-        $consulta =  $pdo->query($sql);
-        if ($consulta->rowCount() == 0) {
-            $payload = json_encode([
-                'error' => 'Not Found',
-                'code' => 404
-            ]);
-            $response->getBody()->write($payload);
-            return $response->withStatus(404);
-        } else {
-            $data = $request->getParsedBody();
-            $tipo_propiedad_id = isset($data['tipo_propiedad_id']) ? $data['tipo_propiedad_id'] : null;
-            $localidad_id = isset($data['localidad_id']) ? $data['localidad_id'] : null;
-            $domicilio = isset($data['domicilio']) ? $data['domicilio'] : null;
+    $error['id'] = validarTipo('id', $id);
+    
+    if (!empty($erroresValidacion) ) {
+        return responseWithError($response, $erroresValidacion, 400);
+    }else if(isset($error['id'])) {
+        return responseWithError($response, $error, 400);
+    } else {
+        try {
+            $pdo = getConnection();
+            
+            $tipo_propiedad_id = $data['tipo_propiedad_id'];
+            $localidad_id = $data['localidad_id'];
+            $domicilio = $data['domicilio'];
             $cantidad_habitaciones = isset($data['cantidad_habitaciones']) ? $data['cantidad_habitaciones'] : null;
             $cantidad_banios = isset($data['cantidad_banios']) ? $data['cantidad_banios'] : null;
             $cochera = isset($data['cochera']) ? $data['cochera'] : null;
-            $fecha_inicio_disponibilidad = isset($data['fecha_inicio_disponibilidad']) ? $data['fecha_inicio_disponibilidad'] : null;
-            $cantidad_dias = isset($data['cantidad_dias']) ? $data['cantidad_dias'] : null;
-            $disponible = isset($data['disponible']) ? $data['disponible'] : null;
-            $valor_noche = isset($data['valor_noche']) ? $data['valor_noche'] : null;
+            $cantidad_huespedes = $data['cantidad_huespedes'];
+            $fecha_inicio_disponibilidad = $data['fecha_inicio_disponibilidad'];
+            $cantidad_dias = $data['cantidad_dias'];
+            $disponible = $data['disponible'];
+            $valor_noche = $data['valor_noche'];
             $imagen = isset($data['imagen']) ? $data['imagen'] : null;
             $tipo_imagen = isset($data['tipo_imagen']) ? $data['tipo_imagen'] : null;
-            $cantidad_huespedes = isset($data['cantidad_huespedes']) ? $data['cantidad_huespedes'] : null;
 
-            $sql = "UPDATE propiedades SET";
-            $params = [];
-
-            if (!empty($domicilio)) {
-                $sql .= " domicilio = :domicilio,";
-                $params[':domicilio'] = $domicilio;
-            }
-
-            if (!empty($localidad_id)) {
-                $sql .= " localidad_id = :localidad_id,";
-                $params[':localidad_id'] = $localidad_id;
-            }
-
-            if (!empty($cantidad_habitaciones)) {
-                $sql .= " cantidad_habitaciones = :cantidad_habitaciones,";
-                $params[':cantidad_habitaciones'] = $cantidad_habitaciones;
-            }
-            if (!empty($cantidad_banios)) {
-                $sql .= " cantidad_banios = :cantidad_banios,";
-                $params[':cantidad_banios'] = $cantidad_banios;
-            }
-
-            if (!empty($cochera)) {
-                $sql .= " cochera = :cochera,";
-                $params[':cochera'] = $cochera;
-            }
-
-            if (!empty($cantidad_huespedes)) {
-                $sql .= " cantidad_huespedes = :cantidad_huespedes,";
-                $params[':cantidad_huespedes'] = $cantidad_huespedes;
-            }
-
-            if (!empty($fecha_inicio_disponibilidad)) {
-                $sql .= " fecha_inicio_disponibilidad = :fecha_inicio_disponibilidad,";
-                $params[':fecha_inicio_disponibilidad'] = $fecha_inicio_disponibilidad;
-            }
-
-            if (!empty($cantidad_dias)) {
-                $sql .= " cantidad_dias = :cantidad_dias,";
-                $params[':cantidad_dias'] = $cantidad_dias;
-            }
-
-            if (!empty($disponible)) {
-                $sql .= " disponible = :disponible,";
-                $params[':disponible'] = $disponible;
-            }
-
-            if (!empty($valor_noche)) {
-                $sql .= " valor_noche = :valor_noche,";
-                $params[':valor_noche'] = $valor_noche;
-            }
-
-            if (!empty($tipo_propiedad_id)) {
-                $sql .= " tipo_propiedad_id = :tipo_propiedad_id,";
-                $params[':tipo_propiedad_id'] = $tipo_propiedad_id;
-            }
-
-            if (!empty($imagen)) {
-                $sql .= " imagen = :imagen,";
-                $params[':imagen'] = $imagen;
-            }
-
-            if (!empty($tipo_imagen)) {
-                $sql .= " tipo_imagen = :tipo_imagen,";
-                $params[':tipo_imagen'] = $tipo_imagen;
-            }
-            $sql = rtrim($sql, ',');
-
-            $sql .= " WHERE id = :id";
-            $params[':id'] = $id;
+            $sql = "UPDATE propiedades SET domicilio = (:domicilio), localidad_id = (:localidad_id), cantidad_habitaciones = (:cantidad_habitaciones), cantidad_banios = (:cantidad_banios), cochera = (:cochera), cantidad_huespedes = (:cantidad_huespedes), fecha_inicio_disponibilidad = (:fecha_inicio_disponibilidad), cantidad_dias = (:cantidad_dias), disponible = (:disponible), valor_noche = (:valor_noche), tipo_propiedad_id = (:tipo_propiedad_id), imagen = (:imagen), tipo_imagen = (:tipo_imagen) WHERE id = (:id)";
 
             $consulta = $pdo->prepare($sql);
-
-            foreach ($params as $key => $value) {
-                $consulta->bindValue($key, $value);
-            }
+            $consulta->bindValue(':id', $id);
+            $consulta->bindValue(':domicilio', $domicilio);
+            $consulta->bindValue(':localidad_id', $localidad_id);
+            $consulta->bindValue(':cantidad_habitaciones', $cantidad_habitaciones);
+            $consulta->bindValue(':cantidad_banios', $cantidad_banios);
+            $consulta->bindValue(':cochera', $cochera);
+            $consulta->bindValue(':cantidad_huespedes', $cantidad_huespedes);
+            $consulta->bindValue(':fecha_inicio_disponibilidad', $fecha_inicio_disponibilidad);
+            $consulta->bindValue(':cantidad_dias', $cantidad_dias);
+            $consulta->bindValue(':disponible', $disponible);
+            $consulta->bindValue(':valor_noche', $valor_noche);
+            $consulta->bindValue(':tipo_propiedad_id', $tipo_propiedad_id);
+            $consulta->bindValue(':imagen', $imagen);
+            $consulta->bindValue(':tipo_imagen', $tipo_imagen);
             $consulta->execute();
+            
+            return responseWithSuccess($response, 'Propiedad modificada con éxito', 201);
+        } catch (\Exception $e) {
             $payload = json_encode([
-                'code' => 201,
-                'message' => 'Localidad editada con éxito'
+                'code' => '500',
+                'error' => $e->getMessage()
             ]);
             $response->getBody()->write($payload);
-            return $response->withStatus(201);
+            return $response->withStatus(500);
         }
-    } catch (\Exception $e) {
-
-        $payload = json_encode([
-            'code' => '500',
-            'error' => $e->getMessage()
-        ]);
-        $response->getBody()->write($payload);
-        return $response->withStatus(500);
     }
 }
 
