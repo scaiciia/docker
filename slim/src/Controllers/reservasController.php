@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . "/../utils/utils.php";
-
+require_once __DIR__ . "/../../utils/utils.php";
+$longCampoReservas = array('' => 225);
+$reservasCamposRequeridos = ['propiedad_id','inquilino_id','fecha_desde','cantidad_noches'];
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -31,10 +32,13 @@ function getReservas(Request $request, Response $response)
 function postReservas(Request $request, Response $response)
 {
     $data = $request->getParsedBody();
-    $requiredFields = ['propiedad_id', 'inquilino_id', 'fecha_desde', 'cantidad_noches'];
-    $responseVal = validationFields($data, $requiredFields, $response);
-    if (!$responseVal) {
-        return $response->withStatus(400);
+    //$requiredFields = ['propiedad_id', 'inquilino_id', 'fecha_desde', 'cantidad_noches'];
+    //$responseVal = validationFields($data, $requiredFields, $response);
+    global $longCampoReservas ;
+    global $reservasCamposRequeridos ;
+    $erroresValidacion = validarCampo($data, $reservasCamposRequeridos, $longCampoReservas);
+    if (!empty($erroresValidacion)){ // Validacion de campos
+        return responseWithError($response, $erroresValidacion, 400);
     } else {
         try {
             $pdo = getConnection();
@@ -88,7 +92,7 @@ function postReservas(Request $request, Response $response)
                 $response->getBody()->write($payload);
                 return $response->withStatus(201);
             } else {
-                // agregar condicion si es que la propiedad no esta o el inquilino no esta
+
                 if ($disponible == 0 ){
 
                     $payload = json_encode([
@@ -208,7 +212,6 @@ function putReservas(Request $request, Response $response, $args)
             $sql .= " fecha_inicio_disponibilidad = :fecha_inicio_disponibilidad,";
             $params[':fecha_inicio_disponibilidad'] = $fecha_inicio_disponibilidad;
         }
-        // var_dump($cantidad_noches);die;
         if (!empty($cantidad_noches)) {
             $sql .= " cantidad_noches = :cantidad_noches,";
             $params[':cantidad_noches'] = $cantidad_noches;

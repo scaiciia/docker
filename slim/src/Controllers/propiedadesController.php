@@ -1,6 +1,8 @@
 <?php
+//require_once __DIR__ . '../../utils/utils.php';
 
-require_once __DIR__ . '/../utils/utils.php';
+$longCampoPropiedades = array('domicilio' => 225, 'tipo_imagen' => 50);
+$propiedadesCamposRequeridos = ['domicilio','localidad_id','cantidad_huespedes','fecha_inicio_disponibilidad','cantidad_dias', 'disponible','valor_noche','tipo_propiedad_id'];
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -36,11 +38,15 @@ function getPropiedades(Request $request, Response $response)
 function postPropiedades(Request $request, Response $response)
 {
     $data = $request->getParsedBody();
-    $requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
-    $responseVal = validationFields($data, $requiredFields, $response);
+    //$requiredFields = ['domicilio', 'localidad_id', 'cantidad_huespedes', 'fecha_inicio_disponibilidad', 'cantidad_dias', 'disponible', 'valor_noche', 'tipo_propiedad_id'];
+    
+    global $propiedadesCamposRequeridos;
+    global $longCampoPropiedades;
+    $erroresValidacion = validarCampo($data, $propiedadesCamposRequeridos, $longCampoPropiedades);
+    //$responseVal = validationFields($data, $requiredFields, $response);
     //var_dump($responseVal);die;
-    if (!$responseVal) {
-        return $response->withStatus(400);
+    if (!empty($erroresValidacion)) {
+        return responseWithError($response, $erroresValidacion, 400);
     } else {
         try {
             $pdo = getConnection();
@@ -52,7 +58,7 @@ function postPropiedades(Request $request, Response $response)
             $consulta->bindValue(':nombre_tipo_propiedad', $nombre_tipo_propiedad);
             $consulta->execute();
             $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $id_localidades = $resultados[0]['id'];
+            //$id_localidades = $resultados[0]['id'];
             if (!isset($resultados[1]['id']) && isset($resultados[0]['id'])) {
                 $payload = json_encode([
                     'error' => "El campo " . " $resultados[0]['id'] " . "es incorrecto",
