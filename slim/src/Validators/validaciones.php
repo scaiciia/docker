@@ -4,18 +4,26 @@ function validarTipo($field, $dato) {
     $string_fields = [
         'nombre',
         'apellido',
-        'tipo_imagen'
+        'tipo_imagen',
+        'domicilio'
     ];
 
     $numeric_fields = [
         'cantidad_huespedes',
+        'cantidad_habitaciones',
+        'cantidad_banios',
+        'cochera',
+        'cantidad_huespedes',
+        'cantidad_dias',
         'id',
         'localidad_id',
         'valor_noche',
         'tipo_propiedad_id',
         'propiedad_id',
         'inquilino_id',
-        'cantidad_noches'
+        'cantidad_noches',
+        'disponible',
+        'valor_total'
     ];
 
     $date_fields = [
@@ -54,9 +62,9 @@ function validarTipo($field, $dato) {
         if (!is_bool($dato)) {
             return "El campo $field debe ser booleano";
         }
-    } elseif (in_array($filed, $image_fields)) {
+    } elseif (in_array($field, $image_fields)) {
         if (!is_string($dato)) {
-            return "El campo $filed debe ser un string";
+            return "El campo $field debe ser un string";
         }
     }
 }
