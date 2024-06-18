@@ -11,21 +11,26 @@ function responseWithError($response, $error, $statusCode) {
 }
 
 function responseWithSuccess($response, $message, $statusCode) {
-    $payload = json_encode([
+    $json = [
         'status' => 'success',
         'code' => $statusCode,
         'message' => $message
-    ]);
+    ];
+    $payload = json_encode($json);
     $response->getBody()->write($payload);
     return $response->withStatus($statusCode);
 }
 
-function responseWithData($response, $data, $statusCode) {
-    $payload = json_encode([
+function responseWithData($response, $data, $statusCode, $warning = null) {
+    $json = [
         'status' => 'success',
         'code' => $statusCode,
-        'data' => $data
-    ]);
+    ];
+    if ((isset($warning)) && !(empty($warning))){
+        $json['warning'] = $warning;
+    }
+    $json['data'] = $data;
+    $payload = json_encode($json);
     $response->getBody()->write($payload);
     return $response->withStatus($statusCode);
 }

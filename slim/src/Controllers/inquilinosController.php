@@ -31,7 +31,7 @@ function postInquilinos(Request $request, Response $response){
     
     // Obtiene la informacion
     $data = $request->getParsedBody();
-
+    $data['activo'] = (bool) $data['activo'];
     global $inquilinosCamposRequeridos;
     global $longCampoInquilinos;
     $erroresValidacion = validarCampo($data, $inquilinosCamposRequeridos, $longCampoInquilinos);
@@ -57,7 +57,7 @@ function postInquilinos(Request $request, Response $response){
                 // Recupera los datos nombre, apellido y activo e inserta el nuevo inquilino a la base de datos
                 $nombre = $data['nombre'];
                 $apellido = $data['apellido'];
-                $activo = $data['activo'];
+                $activo = $data['activo'] ? 1 : 0;
                 $sql = "INSERT INTO inquilinos (nombre, apellido, documento, email, activo) VALUES (:nombre, :apellido, :documento, :email, :activo)";
                 $consulta = $pdo->prepare($sql);
                 $consulta->bindValue(':nombre', $nombre);
@@ -110,6 +110,7 @@ function getInquilino(Request $request, Response $response, array $args){
 function putInquilino(Request $request, Response $response, array $args) {
     // Obtiene la informacion
     $data = $request->getParsedBody();
+    $data['activo'] = (bool) $data['activo'];
 
     global $inquilinosCamposRequeridos;
     global $longCampoInquilinos;
@@ -146,6 +147,7 @@ function putInquilino(Request $request, Response $response, array $args) {
                             $nombre = $data['nombre'];
                             $apellido = $data['apellido'];
                             $activo = $data['activo'];
+                            $activo = $data['activo'] ? 1 : 0;
                             $sql = "UPDATE inquilinos SET documento = (:documento), email = (:email), nombre = (:nombre), apellido = (:apellido), activo = (:activo) WHERE id = '". $id . "'";
                             $consulta = $pdo->prepare($sql);
                             $consulta->bindValue(':documento', $documento);

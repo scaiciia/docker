@@ -108,7 +108,7 @@ $app->get('/inquilinos/{id}/reservas', function(Request $request, Response $resp
 
 // Propiedades
 $app->post('/propiedades', function(Request $request, Response $response){
-    postPropiedades($request, $response);
+    postPropiedades($request, $response, $args);
     return $response;
 });
 
@@ -122,8 +122,8 @@ $app->delete('/propiedades/{id}', function(Request $request, Response $response,
     return $response;
 });
 
-$app->get('/propiedades', function(Request $request, Response $response){
-    getPropiedades($request, $response);
+$app->get('/propiedades', function(Request $request, Response $response, $args){
+    getPropiedades($request, $response, $args);
     return $response;
 });
 

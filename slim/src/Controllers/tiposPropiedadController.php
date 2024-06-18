@@ -107,8 +107,8 @@ function putTiposPropiedad(Request $request, Response $response, array $args){
 
                     // Realiza una consulta a la base de datos para ver si ese nombre ya existe.
                     $validarExistentes = array('nombre' => $nombre);
-
-                    $erroresExistentes = validarExistenteDB($pdo, 'tipo_propiedades', $validarExistentes);
+                    $opcional = 'AND id != ' . $id;
+                    $erroresExistentes = validarExistenteDB($pdo, 'tipo_propiedades', $validarExistentes, $opcional);
 
                     if (!empty($erroresExistentes)) {
                         return responseWithError($response, $erroresExistentes, 400);

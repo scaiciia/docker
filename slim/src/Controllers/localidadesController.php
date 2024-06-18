@@ -103,8 +103,8 @@ function putLocalidades(Request $request, Response $response, array $args){
 
                     // Realiza una consulta a la base de datos para ver si ese nombre ya existe.
                     $validarExistentes = array('nombre' => $nombre);
-
-                    $erroresExistentes = validarExistenteDB($pdo, 'localidades', $validarExistentes);
+                    $opcional = 'AND id != ' . $id;
+                    $erroresExistentes = validarExistenteDB($pdo, 'localidades', $validarExistentes, $opcional);
 
                     if (!empty($erroresExistentes)) {
                         return responseWithError($response, $erroresExistentes, 400);

@@ -22,7 +22,6 @@ function validarTipo($field, $dato) {
         'propiedad_id',
         'inquilino_id',
         'cantidad_noches',
-        'disponible',
         'valor_total'
     ];
 
@@ -36,8 +35,13 @@ function validarTipo($field, $dato) {
         'tipo_imagen'
     ];
 
+    $boolean_fields = [
+        'activo',
+        'disponible'
+    ];
+
     if (in_array($field, $string_fields, true)) {
-        if (!preg_match('/^[a-zA-Z0-9\s]+$/', $dato)) {
+        if (!preg_match('/^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$/', $dato)) {
             return "El campo $field solo debe contener letras y espacios";
         }
     } elseif ($field === 'documento') {
@@ -58,8 +62,8 @@ function validarTipo($field, $dato) {
         }
     } elseif (in_array($field, $date_fields, true)) {
 
-    } elseif ($field = 'activo') {
-        if (!is_bool($dato)) {
+    } elseif (in_array($field, $boolean_fields, true)) {
+        if ((!is_bool($dato))) {
             return "El campo $field debe ser booleano";
         }
     } elseif (in_array($field, $image_fields)) {
@@ -80,19 +84,23 @@ function validarCampo($data, $requiredFields, $longCampo) {
     $campoInvalido = [];
     $camposLongInvalida = [];
     foreach ($requiredFields as $field) {
-        if ((!isset($data[$field])) || empty($data[$field])) {
-            $camposFaltantes[$field] = "El campo $field es requerido";
+        if (isset($data[$field])) {
+            if ((!(is_bool($data[$field]))) && (empty($data[$field]))) {
+                $camposFaltantes[$field] = "El campo $field es requerido";
         } else {
-            $error = validarTipo($field, $data[$field]);
-            if (!empty($error)) {
-                $campoInvalido[$field] = $error;
-            }
-            if (isset($longCampo[$field])) {
-                $error = validarLong($field, $data[$field], $longCampo[$field]);
+                $error = validarTipo($field, $data[$field]);
                 if (!empty($error)) {
-                    $camposLongInvalida[$field] = $error;
+                    $campoInvalido[$field] = $error;
+                }
+                if (isset($longCampo[$field])) {
+                    $error = validarLong($field, $data[$field], $longCampo[$field]);
+                    if (!empty($error)) {
+                        $camposLongInvalida[$field] = $error;
+                    }
                 }
             }
+        } else {
+            $camposFaltantes[$field] = "El campo $field es requerido";
         }
     }
     $errores = array_merge($camposFaltantes, $campoInvalido, $camposLongInvalida);
