@@ -35,7 +35,7 @@ function postInquilinos(Request $request, Response $response){
     global $inquilinosCamposRequeridos;
     global $longCampoInquilinos;
     $erroresValidacion = validarCampo($data, $inquilinosCamposRequeridos, $longCampoInquilinos);
-
+    // crear inquilino inactivo 
     if (!empty($erroresValidacion)){ // Validacion de campos
         return responseWithError($response, $erroresValidacion, 400);
     } else {
@@ -54,10 +54,10 @@ function postInquilinos(Request $request, Response $response){
                 return responseWithError($response, $erroresExistentes, 400);
             } else {
 
-                // Recupera los datos nombre, apellido y activo e inserta el nuevo inquilino a la base de datos
                 $nombre = $data['nombre'];
                 $apellido = $data['apellido'];
                 $activo = $data['activo'];
+                $activo = ($activo === 'true') ? 1 : 0;
                 $sql = "INSERT INTO inquilinos (nombre, apellido, documento, email, activo) VALUES (:nombre, :apellido, :documento, :email, :activo)";
                 $consulta = $pdo->prepare($sql);
                 $consulta->bindValue(':nombre', $nombre);

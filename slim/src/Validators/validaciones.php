@@ -80,7 +80,7 @@ function validarCampo($data, $requiredFields, $longCampo) {
     $campoInvalido = [];
     $camposLongInvalida = [];
     foreach ($requiredFields as $field) {
-        if ((!isset($data[$field])) || empty($data[$field])) {
+        if ((!isset($data[$field])) || (empty($data[$field]) && $data[$field] !== false)) {
             $camposFaltantes[$field] = "El campo $field es requerido";
         } else {
             $error = validarTipo($field, $data[$field]);

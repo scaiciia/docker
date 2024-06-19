@@ -6,21 +6,79 @@ $propiedadesCamposRequeridos = ['domicilio', 'localidad_id', 'cantidad_huespedes
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
+// function getPropiedades(Request $request, Response $response)
+// {
+
+//     $pdo = getConnection();
+
+//     $sql = "SELECT * FROM propiedades
+//     ORDER BY disponible DESC, localidad_id ASC, fecha_inicio_disponibilidad ASC, cantidad_huespedes ASC;";
+//     // filtrar por query params
+//     $consulta = $pdo->query($sql);
+//     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
+
+//     if (isset($resultados) && is_array($resultados) && !empty($resultados)) {
+//         responseWithSuccess($response, $resultados, 200);
+//     } else {
+//         responseWithError($response, 'No hay propiedades en la base', 400);
+//     }
+//     return $response;
+// }
+
 function getPropiedades(Request $request, Response $response)
 {
-
     $pdo = getConnection();
 
-    $sql = "SELECT * FROM propiedades
-    ORDER BY disponible DESC, localidad_id ASC, fecha_inicio_disponibilidad ASC, cantidad_huespedes ASC;";
-    $consulta = $pdo->query($sql);
+    $params = $request->getQueryParams();
+
+    // Construir la consulta SQL base
+    $sql = "SELECT * FROM propiedades WHERE 1=1";
+    // Agregar filtros si están presentes en los parámetros de consulta
+    if (isset($params['disponible'])) {
+        $sql .= " AND disponible = :disponible";
+    }
+    if (isset($params['localidad_id'])) {
+        $sql .= " AND localidad_id = :localidad_id";
+    }
+    if (isset($params['fecha_inicio_disponibilidad'])) {
+        $sql .= " AND fecha_inicio_disponibilidad >= :fecha_inicio_disponibilidad";
+    }
+    if (isset($params['cantidad_huespedes'])) {
+        $sql .= " AND cantidad_huespedes = :cantidad_huespedes";
+    }
+
+    // Preparar la consulta
+    $consulta = $pdo->prepare($sql);
+
+    // Vincular los valores de los parámetros de consulta
+    if (isset($params['disponible'])) {
+        // Convertir 'true' a 1 y 'false' a 0
+        $disponible = $params['disponible'] === 'true' ? 1 : 0;
+        $consulta->bindValue(':disponible', $disponible, PDO::PARAM_INT);
+    }
+    if (isset($params['localidad_id'])) {
+        $consulta->bindValue(':localidad_id', $params['localidad_id'], PDO::PARAM_INT);
+    }
+    if (isset($params['fecha_inicio_disponibilidad'])) {
+        $consulta->bindValue(':fecha_inicio_disponibilidad', $params['fecha_inicio_disponibilidad'], PDO::PARAM_STR);
+    }
+    if (isset($params['cantidad_huespedes'])) {
+        $consulta->bindValue(':cantidad_huespedes', $params['cantidad_huespedes'], PDO::PARAM_INT);
+    }
+
+    // Ejecutar la consulta
+    //var_dump($consulta);die();
+    $consulta->execute();
     $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
+
+    // Generar la respuesta
     if (isset($resultados) && is_array($resultados) && !empty($resultados)) {
         responseWithSuccess($response, $resultados, 200);
     } else {
         responseWithError($response, 'No hay propiedades en la base', 400);
     }
+
     return $response;
 }
 
@@ -51,7 +109,7 @@ function postPropiedades(Request $request, Response $response)
             $valor_noche = $data['valor_noche'];
             $imagen = isset($data['imagen']) ? $data['imagen'] : null;
             $tipo_imagen = isset($data['tipo_imagen']) ? $data['tipo_imagen'] : null;
-
+            $disponible = ($disponible === 'true') ? 1 : 0;
             $sql = "INSERT INTO propiedades (domicilio, localidad_id, cantidad_habitaciones, cantidad_banios, cochera, cantidad_huespedes, fecha_inicio_disponibilidad, cantidad_dias, disponible, valor_noche, tipo_propiedad_id, imagen, tipo_imagen) VALUES (:domicilio, :localidad_id, :cantidad_habitaciones, :cantidad_banios, :cochera, :cantidad_huespedes, :fecha_inicio_disponibilidad, :cantidad_dias, :disponible, :valor_noche, :tipo_propiedad_id, :imagen, :tipo_imagen)";
             $consulta = $pdo->prepare($sql);
             $consulta->bindValue(':domicilio', $domicilio);
