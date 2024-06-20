@@ -108,7 +108,7 @@ $app->get('/inquilinos/{id}/reservas', function(Request $request, Response $resp
 
 // Propiedades
 $app->post('/propiedades', function(Request $request, Response $response){
-    postPropiedades($request, $response, $args);
+    postPropiedades($request, $response);
     return $response;
 });
 
