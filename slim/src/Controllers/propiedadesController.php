@@ -101,7 +101,7 @@ function postPropiedades(Request $request, Response $response)
                     $domicilio = $data['domicilio'];
                     $cantidad_habitaciones = isset($data['cantidad_habitaciones']) ? $data['cantidad_habitaciones'] : null;
                     $cantidad_banios = isset($data['cantidad_banios']) ? $data['cantidad_banios'] : null;
-                    $cochera = isset($data['cochera']) ? $data['cochera'] : null;
+                    $cochera = isset($data['cochera']) ? ($data['cochera'] ? 1 : 0) : null;
                     $cantidad_huespedes = $data['cantidad_huespedes'];
                     $fecha_inicio_disponibilidad = $data['fecha_inicio_disponibilidad'];
                     $cantidad_dias = $data['cantidad_dias'];
@@ -170,7 +170,7 @@ function putPropiedades(Request $request, Response $response, $args)
                     $domicilio = $data['domicilio'];
                     $cantidad_habitaciones = isset($data['cantidad_habitaciones']) ? $data['cantidad_habitaciones'] : null;
                     $cantidad_banios = isset($data['cantidad_banios']) ? $data['cantidad_banios'] : null;
-                    $cochera = isset($data['cochera']) ? $data['cochera'] : null;
+                    $cochera = isset($data['cochera']) ? ($data['cochera'] ? 1 : 0) : null;
                     $cantidad_huespedes = $data['cantidad_huespedes'];
                     $fecha_inicio_disponibilidad = $data['fecha_inicio_disponibilidad'];
                     $cantidad_dias = $data['cantidad_dias'];
@@ -224,8 +224,23 @@ function getPropiedad(Request $request, Response $response, $args)
             responseWithError($response, 'ID Not Found', 404);
             return $response;
         } else {
-            $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            responseWithSuccess($response, $resultados, 200);
+            $resultados = $consulta->fetch(PDO::FETCH_ASSOC);
+
+            $resultadoFinal = [];
+
+            $sql = "SELECT * FROM localidades WHERE id = ?";
+                $consulta = $pdo->prepare($sql);
+                $consulta->execute([$resultados['localidad_id']]);
+                $resultados['localidad_id'] = $consulta->fetch(PDO::FETCH_ASSOC);
+
+                $sql = "SELECT * FROM tipo_propiedades WHERE id = ?";
+                $consulta = $pdo->prepare($sql);
+                $consulta->execute([$resultados['tipo_propiedad_id']]);
+                $resultados['tipo_propiedad_id'] = $consulta->fetch(PDO::FETCH_ASSOC);
+
+                $resultadoFinal[] = $resultados;
+
+            responseWithSuccess($response, $resultadoFinal, 200);
             return $response;
         }
     } catch (\Exception $e) {
