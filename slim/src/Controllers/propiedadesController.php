@@ -260,7 +260,6 @@ function deletePropiedades(Request $request, Response $response, $args)
         $pdo = getConnection();
         $sql = "SELECT * FROM propiedades WHERE id = '" . $id . "'";
         $consulta = $pdo->query($sql);
-        var_dump($id);
         if ($consulta->rowCount() == 0) {
             return responseWithError($response, 'No se encontró una propiedad con ese id', 404);
         } else {
