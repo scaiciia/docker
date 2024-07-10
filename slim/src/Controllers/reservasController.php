@@ -116,7 +116,7 @@ function postReservas(Request $request, Response $response)
                         } else if ($active == 0) {
                             $mensaje = 'El inquilino no se encuentra disponible';
                         }
-                        responseWithSuccess($response, $mensaje, 200);
+                        responseWithError($response, $mensaje, 400);
                         return $response;
                     }
                 }
@@ -150,7 +150,7 @@ function deleteReservas(Request $request, Response $response, $args)
         $fecha1 = new DateTime($fecha_desde);
         $fecha2 = new DateTime($fecha_actual);
         if ($fecha1 < $fecha2) {
-            responseWithSuccess($response, 'La reserva no se puede eliminar una vez iniciada la estadía', 201);
+            responseWithError($response, 'La reserva no se puede eliminar una vez iniciada la estadía', 404);
             return $response;
         }
         $sql = "DELETE FROM reservas WHERE id = '" . $id . "'";
@@ -167,14 +167,13 @@ function deleteReservas(Request $request, Response $response, $args)
 
 function putReservas(Request $request, Response $response, $args)
 {
-    $id = $args['id'];
     global $longCampoReservas;
     global $reservasCamposRequeridos;
     $data = $request->getParsedBody();
     $id = $args['id'];
     $error['id'] = validarTipo('id', $id);
     $erroresValidacion = validarCampo($data, $reservasCamposRequeridos, $longCampoReservas);
-    if (!empty($erroresValidacion)) { // Validacion de campos
+    if (!empty($erroresValidacion)) { 
         return responseWithError($response, $erroresValidacion, 400);
     } else if (isset($error['id'])) {
         return responseWithError($response, $error, 400);
@@ -189,7 +188,7 @@ function putReservas(Request $request, Response $response, $args)
         $fecha1 = new DateTime($fecha_desde);
         $fecha2 = new DateTime($fecha_actual);
         if ($fecha1 < $fecha2) {
-            responseWithSuccess($response, 'La reserva no se puede modificar una vez iniciada la estadía', 201);
+            responseWithError($response, 'La reserva no se puede modificar una vez iniciada la estadía', 404);
             return $response;
         }
         $data = $request->getParsedBody();
@@ -246,7 +245,7 @@ function putReservas(Request $request, Response $response, $args)
                     } else if ($active == 0) {
                         $mensaje = 'El inquilino no se encuentra disponible';
                     }
-                    responseWithSuccess($response, $mensaje, 200);
+                    responseWithError($response, $mensaje, 404);
                     return $response;
                 }
             }

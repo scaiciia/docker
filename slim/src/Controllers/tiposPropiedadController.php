@@ -8,15 +8,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 function getTiposPropiedad(Request $request, Response $response){
     try {
-        // Conexion a base de datos
         $pdo = getConnection();
 
-        // Consulta a la base de datos
         $sql = "SELECT * FROM tipo_propiedades";
         $consulta = $pdo->query($sql);
         
 
-        // Retorna el resultado en un JSON
         if($consulta->rowCount() != 0){
             $resultados = $consulta->fetchAll(PDO::FETCH_ASSOC);
             return responseWithData($response, $resultados, 200);
@@ -30,35 +27,29 @@ function getTiposPropiedad(Request $request, Response $response){
 
 function postTiposPropiedad(Request $request, Response $response){
 
-    // Obtiene la informacion
     $data = $request->getParsedBody();
 
-    // Verifica si hay información del campo nombre
     global $tiposPropiedadCamposRequeridos;
     global $longitudCampoTipoPropiedades;
     $erroresValidacion = validarCampo($data, $tiposPropiedadCamposRequeridos, $longitudCampoTipoPropiedades);
 
-    if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
+    if (!empty($erroresValidacion)){ 
         return responseWithError($response, $erroresValidacion, 400);
     } else {
         try {
 
-            // Conexion a base de datos
             $pdo = getConnection();
 
-            // Obtiene el dato del campo nombre
             $nombre = $data['nombre'];
 
-            // Realiza una consulta a la base de datos para ver si ese dato ya existe.
             $validarExistentes = array('nombre' => $nombre);
 
             $erroresExistentes = validarExistenteDB($pdo, 'tipo_propiedades', $validarExistentes);
 
-            if (!empty($erroresExistentes)) { // Verifica si nombre no esta repetido
+            if (!empty($erroresExistentes)) { 
                 return responseWithError($response, $erroresExistentes, 400);
             } else {
 
-                // Inserta el nuevo dato en la base de datos
                 $sql = "INSERT INTO tipo_propiedades (nombre) VALUES (:nombre)";
                 $consulta = $pdo->prepare($sql);
                 $consulta->bindValue(':nombre', $nombre);
@@ -67,7 +58,6 @@ function postTiposPropiedad(Request $request, Response $response){
             }
         } catch (\Exception $e) {
 
-            // Se prdujo un error al crear
             return responseWithError($response, $e, 500);
         }
     }
@@ -75,37 +65,30 @@ function postTiposPropiedad(Request $request, Response $response){
 
 function putTiposPropiedad(Request $request, Response $response, array $args){
 
-    // Obtiene la informacion
     $data = $request->getParsedBody();
 
-    // Verifica si hay información del campo nombre
     global $tiposPropiedadCamposRequeridos;
     global $longitudCampoTipoPropiedades;
     $erroresValidacion = validarCampo($data, $tiposPropiedadCamposRequeridos, $longitudCampoTipoPropiedades);
 
-    if (!empty($erroresValidacion)){ // Verifica si el campo nombre esta vacio
+    if (!empty($erroresValidacion)){ 
         return responseWithError($response, $erroresValidacion, 400);
     } else {
         try {
 
-            // Obtiene la informacion
             $id = $args['id'];
             $error['id'] = validarTipo('id', $id);
             if (!(isset($error['id']))) {
-                // Conexion a base de datos
                 $pdo = getConnection();
 
-                // Consulta si existe el id
                 $sql = "SELECT * FROM tipo_propiedades WHERE id = '" . $id . "'";
                 $existe = $pdo->query($sql);
                 if ($existe->rowCount() == 0) {
                     return responseWithError($response, 'No se encontró tipo de propiedad', 404);
                 } else {
 
-                    // Obtiene el dato
                     $nombre = $data['nombre'];
 
-                    // Realiza una consulta a la base de datos para ver si ese nombre ya existe.
                     $validarExistentes = array('nombre' => $nombre);
                     $opcional = 'AND id != ' . $id;
                     $erroresExistentes = validarExistenteDB($pdo, 'tipo_propiedades', $validarExistentes, $opcional);
@@ -114,7 +97,6 @@ function putTiposPropiedad(Request $request, Response $response, array $args){
                         return responseWithError($response, $erroresExistentes, 400);
                     } else {
 
-                        // Actualiza el nombre
                         $sql = "UPDATE tipo_propiedades SET nombre = (:nombre) WHERE id = (:id)";
                         $consulta = $pdo->prepare($sql);
                         $consulta->bindValue(':nombre', $nombre, PDO::PARAM_STR);
@@ -128,7 +110,6 @@ function putTiposPropiedad(Request $request, Response $response, array $args){
             }
         } catch (\Exception $e) {
 
-            //se prdujo un error al editar
             return responseWithError($response, $e, 500);
         }
     }
@@ -137,14 +118,11 @@ function putTiposPropiedad(Request $request, Response $response, array $args){
 function deleteTiposPropiedad(Request $request, Response $response, array $args){
     try {
 
-        //obtiene la informacion
         $id = $args['id'];
         $error['id'] = validarTipo('id', $id);
         if (!(isset($error['id']))) {
-            // Conexion a base de datos
             $pdo = getConnection();
 
-            // Consulta si existe el id
             $sql = "SELECT * FROM tipo_propiedades WHERE id = '" . $id . "'";
             $existe = $pdo->query($sql);
             if ($existe->rowCount() == 0) {
@@ -153,14 +131,13 @@ function deleteTiposPropiedad(Request $request, Response $response, array $args)
                 $sql = "SELECT * FROM propiedades WHERE tipo_propiedad_id = '" . $id . "'";
                 $resultado = $pdo->query($sql);
                 if ($resultado->rowCount() == 0) {
-                    // Elimina el dato de la base de datos
                     $sql = "DELETE FROM tipo_propiedades WHERE id = (:id)";
                     $consulta = $pdo->prepare($sql);
                     $consulta->bindValue(':id', $id, PDO::PARAM_INT);
                     $consulta->execute();
                     $stmt = $pdo->prepare("ALTER TABLE tipo_propiedades AUTO_INCREMENT = 1");
                     $stmt->execute();
-                    return responseWithSuccess($response, 'El tipo de propiedad eliminada con éxito', 201);
+                    return responseWithSuccess($response, 'El tipo de propiedad eliminada con éxito', 200);
                 } else {
                     return responseWithError($response, 'El tipo de propiedad se esta utilizando en otro registro', 400);
                 }
@@ -170,7 +147,6 @@ function deleteTiposPropiedad(Request $request, Response $response, array $args)
         }
     } catch (\Exception $e) {
 
-        // Se prdujo un error al eliminar
         return responseWithError($response, $e, 500);
     }
 };
